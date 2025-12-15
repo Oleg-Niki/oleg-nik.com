@@ -238,6 +238,7 @@
         document.addEventListener("touchmove", (e) => {
             const touch = e.touches[0];
             if (!touch) return;
+            if (!dragState.active) return;
             e.preventDefault();
             moveDrag(touch);
         }, { passive: false });
@@ -612,6 +613,10 @@
               <span class="stat-value">&lt; 10 g</span>
             </div>
           </div>
+          <div class="project-media">
+            <img src="assets/projects/engr230/PrattDesign1.jpg" alt="Pratt/Warren hybrid layout overview">
+            <p class="project-media-caption">Pratt/Warren hybrid layout overview</p>
+          </div>
         </div>
 
         <div class="project-section-grid">
@@ -651,6 +656,10 @@
           <section class="project-section">
             <h3>Design Approach</h3>
             <p>Compared Warren, Camelback, and Pratt, then chose a Pratt-inspired layout with Warren diagonals to shorten compression members and cut weight.</p>
+            <div class="project-media">
+              <img src="assets/projects/engr230/Brainstorm.jpg" alt="Brainstorm sketches for truss concepts">
+              <p class="project-media-caption">Early brainstorming sketches comparing truss geometries</p>
+            </div>
             <ul class="project-bullets">
               <li>Few, short compression members to reduce buckling risk.</li>
               <li>Straight load paths for predictable tension in the bottom chord.</li>
@@ -675,6 +684,22 @@
               <li>Failure driver: slenderness + slight joint misalignment reducing buckling capacity.</li>
               <li>Tension members remained intact; glue weight kept under spec.</li>
             </ul>
+            <div class="project-media">
+              <img src="assets/projects/engr230/Pratt_test1.jpg" alt="Pratt truss test mid-load">
+              <p class="project-media-caption">Pratt hybrid under load during Instron test</p>
+            </div>
+            <div class="project-media">
+              <img src="assets/projects/engr230/Pratt_test2.jpg" alt="Pratt truss failure moment">
+              <p class="project-media-caption">Final buckling failure at top chord near mid-span</p>
+            </div>
+            <div class="project-media">
+              <img src="assets/projects/engr230/PrattDesign0.jpg" alt="Pratt design sketch iteration 0">
+              <p class="project-media-caption">Pratt/Warren hybrid layout iteration 0</p>
+            </div>
+            <div class="project-media">
+              <img src="assets/projects/engr230/PrattDesign1.jpg" alt="Pratt design sketch iteration 1">
+              <p class="project-media-caption">Pratt/Warren hybrid layout iteration 1</p>
+            </div>
           </section>
 
           <section class="project-section">
@@ -973,8 +998,10 @@
         document.addEventListener("touchmove", (e) => {
             const touch = e.touches[0];
             if (!touch) return;
+            if (!dragState.active) return;
+            e.preventDefault();
             moveDrag(touch);
-        }, { passive: true });
+        }, { passive: false });
 
         document.addEventListener("touchend", endDrag);
     }
