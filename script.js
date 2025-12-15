@@ -13,8 +13,7 @@
         contact: "contact-icon.png",
     };
 
-    const PROJECT_FOLDERS = [
-        {
+    const PROJECT_FOLDERS = [{
             id: "engr210",
             title: "Engr Graphics - Moustrap Car",
             icon: "engr210-icon.png",
@@ -619,6 +618,10 @@
           <section class="project-section">
             <h3>Project Description</h3>
             <p>Two-person build of a balsa truss that exceeds a 1.5 safety factor while staying under 10 g. Full cycle: sketch → simulate → build → test to failure.</p>
+            <div class="project-media">
+              <img src="assets/projects/engr230/JHUtrussbridge.jpg" alt="JHU truss bridge build">
+              <p class="project-media-caption">JHU Truss Bridge — build setup before testing</p>
+            </div>
             <ul class="project-bullets">
               <li>Design for high strength-to-weight, bonus for non-standard geometry.</li>
               <li>Capture load, deflection, and failure mode during testing.</li>
@@ -638,6 +641,10 @@
               <div class="spec-row"><span>Material</span><span>3.175 mm balsa, E = 2.55 GPa</span></div>
               <div class="spec-row"><span>Strength</span><span>73 MPa tension / 6.9 MPa compression</span></div>
               <div class="spec-row"><span>Design style</span><span>Pratt/Warren hybrid (non-standard)</span></div>
+            </div>
+            <div class="project-media">
+              <img src="assets/projects/engr230/BridgeConstructionMovie.gif" alt="Bridge construction timelapse for Engr 230 truss project">
+              <p class="project-media-caption">Build sequence timelapse — gluing, bracing, and deck assembly</p>
             </div>
           </section>
 

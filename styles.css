@@ -998,6 +998,29 @@ body {
     font-weight: bold;
 }
 
+.project-media {
+    margin-top: 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    align-items: center;
+    text-align: center;
+}
+
+.project-media img {
+    display: block;
+    max-width: 100%;
+    height: auto;
+    border: 1px solid var(--win98-border-medium);
+    box-shadow: inset 1px 1px 0 var(--win98-border-light);
+}
+
+.project-media-caption {
+    margin: 0;
+    font-size: 11px;
+    color: #333333;
+}
+
 
 /* ================================
    BSOD Screen
