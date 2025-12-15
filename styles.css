@@ -1007,6 +1007,13 @@ body {
     text-align: center;
 }
 
+.project-media-collection {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 12px;
+    margin-top: 8px;
+}
+
 .project-media img {
     display: block;
     max-width: 100%;

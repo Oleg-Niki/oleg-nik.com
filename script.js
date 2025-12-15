@@ -77,14 +77,31 @@
 
     const PAGES = {
         about: {
-            title: "About Me",
-            html: `
+        title: "About Me",
+        html: `
         <p>
-          I’m Oleg, an international engineering student and robotics technician based in the Bay Area. With a background in computer science, racing, and sustainability projects, I like turning complex ideas into practical, efficient systems. When I’m not in class or at work, I’m usually building robots, tuning race cars, or designing interactive exhibits that make technology easier to understand.
+          I'm Oleg, an international engineering student and robotics technician based in the Bay Area. With a background in computer science, racing, and sustainability projects, I like turning complex ideas into practical, efficient systems. When I'm not in class or at work, I'm usually building robots, tuning race cars, or designing interactive exhibits that make technology easier to understand.
         </p>
-        
+        <div class="project-media-collection">
+          <div class="project-media">
+            <img src="assets/aboutme/1.jpg" alt="Oleg working on a robotics project">
+            <p class="project-media-caption">Robotics build day</p>
+          </div>
+          <div class="project-media">
+            <img src="assets/aboutme/2.jpg" alt="Oleg at a race car setup session">
+            <p class="project-media-caption">Trackside setup</p>
+          </div>
+          <div class="project-media">
+            <img src="assets/aboutme/3.jpg" alt="Oleg presenting an engineering project">
+            <p class="project-media-caption">Presenting an engineering demo</p>
+          </div>
+          <div class="project-media">
+            <img src="assets/aboutme/4.jpg" alt="Oleg in the shop prototyping">
+            <p class="project-media-caption">Shop prototyping</p>
+          </div>
+        </div>
       `,
-        },
+    },
         gallery: {
             title: "Project Gallery",
             html: `
