@@ -579,6 +579,9 @@
         if (folder.id === "engr210") {
             return renderEngr210Project();
         }
+        if (folder.id === "racing") {
+            return renderRacingProject();
+        }
         const fileList = folder.contents.map((item) => `<li>${item}</li>`).join("");
         return `
       <div class="folder-body">
@@ -702,6 +705,118 @@
                 <img src="assets/projects/engr210/mouse-trap-car5.jpg" alt="Mousetrap car team review">
                 <p class="project-media-caption">Team review and tweaks</p>
               </div>
+            </div>
+          </section>
+        </div>
+      </div>
+    `;
+    }
+
+    function renderRacingProject() {
+        const galleryImages = [
+            { src: "assets/projects/racing/racing0.5.jpg", caption: "3s-gte preseason rebuild" },
+            { src: "assets/projects/racing/racing1.jpg", caption: "First podium" },
+            { src: "assets/projects/racing/racing2.jpg", caption: "Setup tweaks on winter openpit practice" },
+            { src: "assets/projects/racing/racing3.jpg", caption: "First winter win in RWD" },
+            //{ src: "assets/projects/racing/racing4.jpg", caption: "Launch off the line" },
+            { src: "assets/projects/racing/racing5.jpg", caption: "Mid-corner load" },
+            { src: "assets/projects/racing/racing6.jpg", caption: "Happy Camper" },
+            { src: "assets/projects/racing/racing7.jpg", caption: "LADA Time Attack NRing Curcuit" },
+            { src: "assets/projects/racing/racing8.jpg", caption: "Second Place" },
+            { src: "assets/projects/racing/racing9.jpg", caption: "Podium finish" },
+            { src: "assets/projects/racing/racing10.jpg", caption: "Fans" },
+            { src: "assets/projects/racing/racing11.jpg", caption: "Look at the hood.." },
+            { src: "assets/projects/racing/racing12.jpg", caption: "Again Second Place" },
+            { src: "assets/projects/racing/racing13.jpg", caption: "Winter Open Rally Cup" },
+            { src: "assets/projects/racing/racing14.jpg", caption: "Team RS" },
+            { src: "assets/projects/racing/racing15.jpg", caption: "ADM Curcuit, winter practice" },
+            { src: "assets/projects/racing/racing16.jpg", caption: "LTAC podium" },
+            { src: "assets/projects/racing/racing17.jpg", caption: "Fixing stuff in a field" },
+            { src: "assets/projects/racing/racing18.jpg", caption: "Fresh Paint" },
+            { src: "assets/projects/racing/racing19.jpg", caption: "After race" },
+            { src: "assets/projects/racing/racing20.jpg", caption: "After race 2" },
+            { src: "assets/projects/racing/racing21.jpg", caption: "Toyota Celica Gt-Four" },
+            { src: "assets/projects/racing/racing22.jpg", caption: "Karting Championship" },
+            { src: "assets/projects/racing/racing23.jpg", caption: "Team RS on ADM" },
+            { src: "assets/projects/racing/racing24.jpg", caption: "First podium in Time Attack on RWD car" },
+        ];
+
+        const galleryHtml = galleryImages
+            .map(
+                (img) => `
+              <div class="project-media">
+                <img src="${img.src}" alt="${img.caption}">
+                <p class="project-media-caption">${img.caption}</p>
+              </div>
+            `
+            )
+            .join("");
+
+        return `
+      <div class="folder-body folder-body--project">
+        <div class="folder-body-header">
+          <div class="folder-body-path">C:\\Projects\\Racing</div>
+          <div class="folder-body-meta">Time attack | Rally | Endurance karting</div>
+        </div>
+
+        <div class="project-hero">
+          <div>
+            <h2 class="project-title">Racing Portfolio</h2>
+            <p class="project-subtitle">National Lada Time Attack Cup (RWD) — Champion 2019, Vice-Champion 2020</p>
+          </div>
+          <div class="stat-cards">
+            <div class="stat-card">
+              <span class="stat-label">Titles</span>
+              <span class="stat-value">40+ podiums</span>
+            </div>
+            <div class="stat-card">
+              <span class="stat-label">Disciplines</span>
+              <span class="stat-value">Time attack, rally, sprint and endurance karting</span>
+            </div>
+            <div class="stat-card">
+              <span class="stat-label">Engineering</span>
+              <span class="stat-value">Toyota and Fiat chassis mech + electrical upgrades</span>
+            </div>
+          </div>
+          <div class="project-media">
+            <img src="assets/projects/racing/racing0.jpg" alt="Lada time attack car on track">
+            <p class="project-media-caption">Winter Open Rally Cup — AWD platform</p>
+          </div>
+        </div>
+
+        <div class="project-section-grid">
+          <section class="project-section">
+            <h3>Project Overview</h3>
+            <p>Competitive driving and engineering program across time attack, rally, and endurance karting. Two-time winner of the National Lada Time Attack Cup (RWD): 2019 champion, 2020 vice champion.</p>
+            <ul class="project-bullets">
+              <li>Multiple podiums in endurance karting, rally, and time attack events.</li>
+              <li>Driver, data analyst, and builder for RWD platforms.</li>
+              <li>Continuous iteration on setup, reliability, and drivability.</li>
+            </ul>
+          </section>
+
+          <section class="project-section">
+            <h3>Engineering Focus</h3>
+            <ul class="project-bullets">
+              <li>Mechanical: suspension geometry tweaks, brake cooling, aero trim, weight reduction.</li>
+              <li>Electrical: harness refresh, sensor integration, data logging for lap analysis.</li>
+              <li>Legacy platform work: modernizing an old Fiat chassis with custom wiring and hardware.</li>
+            </ul>
+          </section>
+
+          <section class="project-section">
+            <h3>Development & Ops</h3>
+            <ul class="project-bullets">
+              <li>Track walks, tire/pressure baselines, and alignment changes between sessions.</li>
+              <li>Data-driven adjustments using onboard logging to refine braking points and throttle maps.</li>
+              <li>Quick-turn fixes during events to keep cars reliable across stints.</li>
+            </ul>
+          </section>
+
+          <section class="project-section">
+            <h3>Gallery</h3>
+            <div class="project-media-collection">
+              ${galleryHtml}
             </div>
           </section>
         </div>
