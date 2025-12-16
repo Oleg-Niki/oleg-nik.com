@@ -77,8 +77,8 @@
 
     const PAGES = {
         about: {
-        title: "About Me",
-        html: `
+            title: "About Me",
+            html: `
         <p>
           I'm Oleg, an international engineering student and robotics technician based in the Bay Area. With a background in computer science, racing, and sustainability projects, I like turning complex ideas into practical, efficient systems. When I'm not in class or at work, I'm usually building robots, tuning race cars, or designing interactive exhibits that make technology easier to understand.
         </p>
@@ -101,7 +101,7 @@
           </div>
         </div>
       `,
-    },
+        },
         gallery: {
             title: "Project Gallery",
             html: `
@@ -576,6 +576,9 @@
         if (folder.id === "engr230") {
             return renderEngr230Project();
         }
+        if (folder.id === "engr210") {
+            return renderEngr210Project();
+        }
         const fileList = folder.contents.map((item) => `<li>${item}</li>`).join("");
         return `
       <div class="folder-body">
@@ -598,6 +601,109 @@
               ${fileList}
             </ul>
           </div>
+        </div>
+      </div>
+    `;
+    }
+
+    function renderEngr210Project() {
+        return `
+      <div class="folder-body folder-body--project">
+        <div class="folder-body-header">
+          <div class="folder-body-path">C:\\Projects\\Engr210\\MousetrapCar</div>
+          <div class="folder-body-meta">Distance-first build | Rapid CAD + prototyping</div>
+        </div>
+
+        <div class="project-hero">
+          <div>
+            <h2 class="project-title">Mousetrap Car — ENGR 210</h2>
+            <p class="project-subtitle">Lightweight, high-efficiency mousetrap-powered racer</p>
+          </div>
+          <div class="stat-cards">
+            <div class="stat-card">
+              <span class="stat-label">Best Run</span>
+              <span class="stat-value">New college record 100+ yards</span>
+            </div>
+            <div class="stat-card">
+              <span class="stat-label">Team</span>
+              <span class="stat-value">3 students</span>
+            </div>
+            <div class="stat-card">
+              <span class="stat-label">Tooling</span>
+              <span class="stat-value">Fusion 360, Bambu X1C, 70W Lasercut</span>
+            </div>
+          </div>
+          <div class="project-media">
+            <img src="assets/projects/engr210/mouse-trap-car0.gif" alt="Mousetrap car test animation">
+            <p class="project-media-caption">Main build GIF — launch and rollout</p>
+          </div>
+        </div>
+
+        <div class="project-section-grid">
+          <section class="project-section">
+            <h3>Project Description</h3>
+            <p>Hands-on CAD-to-track project to maximize travel distance with a mousetrap-powered car. We iterated fast in Fusion 360 and built prototypes to validate friction, alignment, and energy transfer.</p>
+            <ul class="project-bullets">
+              <li>Applied modeling + simulation to refine geometry before cutting parts.</li>
+              <li>Optimized lever arm and wheel sizing for smooth unwinding and low drag.</li>
+              <li>Focused on high strength-to-mass and repeatable launches.</li>
+            </ul>
+          </section>
+
+          <section class="project-section">
+            <h3>Planning & Roles</h3>
+            <p>As a three-person team, I organized brainstorming in Miro and split work by specialty.</p>
+            <ul class="project-bullets">
+              <li>Oleg: requirements, CAD, simulation, test plans.</li>
+              <li>Teammates: fabrication, alignment checks, and track testing.</li>
+              <li>Weekly milestones with measurable distance targets.</li>
+            </ul>
+          </section>
+
+          <section class="project-section">
+            <h3>CAD & Simulation</h3>
+            <ul class="project-bullets">
+              <li>Fusion 360 models for chassis, axle seats, and lever arm geometry.</li>
+              <li>Checked wheel runout and axle straightness to reduce scrub losses.</li>
+              <li>Balanced mass distribution to keep the front end planted during launch.</li>
+            </ul>
+          </section>
+
+          <section class="project-section">
+            <h3>Build, Test, Improve</h3>
+            <p>First prototype beat last year’s CSM distance record; we kept iterating against a written plan.</p>
+            <ul class="project-bullets">
+              <li>Fine-tuned axle friction with bushings and low-drag wheel surfaces.</li>
+              <li>Adjusted string routing and lever length for smoother torque delivery.</li>
+              <li>Documented every run with distance and observations to drive changes.</li>
+            </ul>
+          </section>
+
+          <section class="project-section">
+            <h3>Gallery</h3>
+            <div class="project-media-collection">
+              <div class="project-media">
+                <img src="assets/projects/engr210/mouse-trap-car1.png" alt="Mousetrap car chassis closeup">
+                <p class="project-media-caption">Chassis and axle routing</p>
+              </div>
+              <div class="project-media">
+                <img src="assets/projects/engr210/mouse-trap-car2.png" alt="Mousetrap car lever arm setup">
+                <p class="project-media-caption">Lever arm and string routing</p>
+              </div>
+              <div class="project-media">
+                <img src="assets/projects/engr210/mouse-trap-car3.gif" alt="Mousetrap car wheels and bearings">
+                <p class="project-media-caption">Wheel alignment and bushings</p>
+              </div>
+              <div class="project-media">
+                <img src="assets/projects/engr210/mouse-trap-car4.jpg" alt="Mousetrap car testing on track">
+                <p class="project-media-caption">Test run setup</p>
+              </div>
+              <div class="project-media">
+                <img src="assets/projects/engr210/mouse-trap-car5.jpg" alt="Mousetrap car team review">
+                <p class="project-media-caption">Team review and tweaks</p>
+              </div>
+            </div>
+          </section>
         </div>
       </div>
     `;
