@@ -1028,6 +1028,100 @@ body {
     color: #333333;
 }
 
+.find-window {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.find-label {
+    font-weight: bold;
+    font-size: 12px;
+}
+
+.find-input-row {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+}
+
+.find-input {
+    flex: 1;
+    border: 1px solid var(--win98-border-medium);
+    padding: 4px 6px;
+    font-family: var(--win98-font);
+    font-size: 12px;
+}
+
+.find-clear {
+    padding: 4px 8px;
+    font-family: var(--win98-font);
+    font-size: 11px;
+    background: #c0c0c0;
+    border-top: 2px solid var(--win98-border-light);
+    border-left: 2px solid var(--win98-border-light);
+    border-bottom: 2px solid var(--win98-border-dark);
+    border-right: 2px solid var(--win98-border-dark);
+    cursor: pointer;
+}
+
+.find-clear:active {
+    border-top: 2px solid var(--win98-border-dark);
+    border-left: 2px solid var(--win98-border-dark);
+    border-bottom: 2px solid var(--win98-border-light);
+    border-right: 2px solid var(--win98-border-light);
+}
+
+.find-results {
+    border: 1px solid var(--win98-border-medium);
+    background: #ffffff;
+    min-height: 140px;
+    padding: 6px;
+    display: grid;
+    gap: 6px;
+    overflow-y: auto;
+}
+
+.find-result {
+    text-align: left;
+    background: #f3f3f3;
+    border: 1px solid var(--win98-border-light);
+    padding: 4px 6px;
+    font-family: var(--win98-font);
+    font-size: 12px;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.find-result:hover,
+.find-result:focus-visible {
+    background: #000080;
+    color: #ffffff;
+    outline: none;
+}
+
+.find-title {
+    font-weight: bold;
+}
+
+.find-meta {
+    font-size: 11px;
+    color: inherit;
+}
+
+.find-empty {
+    font-size: 12px;
+    color: #333333;
+}
+
+.help-window {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
 
 /* ================================
    BSOD Screen

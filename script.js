@@ -11,6 +11,8 @@
         about: "about-icon.png",
         gallery: "gallery-icon.png",
         contact: "contact-icon.png",
+        help: "help-icon.png",
+        find: "search-icon.png",
     };
 
     const PROJECT_FOLDERS = [{
@@ -75,6 +77,92 @@
         },
     ];
 
+    const SEARCH_ENTRIES = [{
+            label: "About Me",
+            type: "open",
+            key: "about",
+            meta: "Bio and background",
+        },
+        {
+            label: "Project Gallery",
+            type: "open",
+            key: "gallery",
+            meta: "All project folders",
+        },
+        {
+            label: "Engr Graphics - Mousetrap Car",
+            type: "project",
+            key: "engr210",
+            meta: "ENGR 210",
+        },
+        {
+            label: "Engr 230 Statics - Truss Bridge Design",
+            type: "project",
+            key: "engr230",
+            meta: "ENGR 230",
+        },
+        {
+            label: "Engr 270 Material Science",
+            type: "project",
+            key: "engr270",
+            meta: "ENGR 270",
+        },
+        {
+            label: "Sustainability Project",
+            type: "project",
+            key: "susty",
+            meta: "Sustainability",
+        },
+        {
+            label: "Racing",
+            type: "project",
+            key: "racing",
+            meta: "Time attack, rally, endurance",
+        },
+        {
+            label: "DIY Projects",
+            type: "project",
+            key: "diy",
+            meta: "Builds and experiments",
+        },
+        {
+            label: "Contact",
+            type: "open",
+            key: "contact",
+            meta: "Email and LinkedIn",
+        },
+        {
+            label: "Games",
+            type: "open",
+            key: "games",
+            meta: "Solitaire, Minesweeper, Snake",
+        },
+        {
+            label: "Notepad",
+            type: "open",
+            key: "notepad",
+            meta: "Write notes",
+        },
+        {
+            label: "MS-DOS Prompt",
+            type: "open",
+            key: "dos",
+            meta: "Retro command prompt",
+        },
+        {
+            label: "Find",
+            type: "open",
+            key: "find",
+            meta: "Search this site",
+        },
+        {
+            label: "Help",
+            type: "open",
+            key: "help",
+            meta: "How to use the site",
+        },
+    ];
+
     const PAGES = {
         about: {
             title: "About Me",
@@ -133,9 +221,19 @@
         </p>
       `,
         },
+        find: {
+            title: "Find",
+            html: "",
+        },
+        help: {
+            title: "Help",
+            html: "",
+        },
     };
 
     PAGES.gallery.html = renderGalleryHTML();
+    PAGES.find.html = renderFindHTML();
+    PAGES.help.html = renderHelpHTML();
 
     document.addEventListener("DOMContentLoaded", init);
 
@@ -419,8 +517,7 @@
         } else {
             const contentArea = windowEl.querySelector(".window-body");
             if (contentArea) {
-                const pageContent =
-                    pageKey === "gallery" ? renderGalleryHTML() : page.html;
+                const pageContent = getPageContent(pageKey, page);
                 contentArea.innerHTML = `
           <h1>${page.title}</h1>
           ${pageContent}
@@ -431,6 +528,9 @@
         if (pageKey === "gallery") {
             wireProjectFolders(windowEl);
         }
+        if (pageKey === "find") {
+            wireFindWindow(windowEl);
+        }
 
         showWindow(windowEl);
         centerWindow(windowEl, true);
@@ -438,7 +538,7 @@
 
     function createContentWindow(id, pageKey, page) {
         const icon = PAGE_ICONS[pageKey] || "about-icon.png";
-        const pageContent = pageKey === "gallery" ? renderGalleryHTML() : page.html;
+        const pageContent = getPageContent(pageKey, page);
         const section = document.createElement("section");
         section.id = id;
         section.className = "window window--primary hidden";
@@ -475,6 +575,19 @@
         return section;
     }
 
+    function getPageContent(pageKey, page) {
+        if (pageKey === "gallery") {
+            return renderGalleryHTML();
+        }
+        if (pageKey === "find") {
+            return renderFindHTML();
+        }
+        if (pageKey === "help") {
+            return renderHelpHTML();
+        }
+        return page.html;
+    }
+
     function renderGalleryHTML() {
         const folders = PROJECT_FOLDERS.map(
             (folder) => `
@@ -492,6 +605,130 @@
           ${folders}
         </div>
       `;
+    }
+
+    function renderFindHTML() {
+        return `
+        <div class="find-window">
+          <label class="find-label" for="find-input">Search</label>
+          <div class="find-input-row">
+            <input id="find-input" class="find-input" type="search" placeholder="Search projects, pages, tools">
+            <button type="button" class="find-clear" data-action="clear-find">Clear</button>
+          </div>
+          <div class="find-results" role="listbox">
+            ${renderFindResultsHTML("")}
+          </div>
+        </div>
+      `;
+    }
+
+    function renderHelpHTML() {
+        return `
+        <div class="help-window">
+          <p>Welcome! This portfolio works like a Windows 98 desktop. Use the tips below to explore everything.</p>
+          <div class="project-section-grid">
+            <section class="project-section">
+              <h3>Navigation</h3>
+              <ul class="project-bullets">
+                <li>Double-click desktop icons to open windows.</li>
+                <li>Use Start to open Find, Help, or system tools.</li>
+                <li>Taskbar shows open windows; click to restore/minimize.</li>
+              </ul>
+            </section>
+            <section class="project-section">
+              <h3>Project Gallery</h3>
+              <ul class="project-bullets">
+                <li>Open Project Gallery to see all folders.</li>
+                <li>Double-click a folder to open the full project view.</li>
+                <li>Each folder has images, summaries, and results.</li>
+              </ul>
+            </section>
+            <section class="project-section">
+              <h3>Windows Controls</h3>
+              <ul class="project-bullets">
+                <li>Use minimize and maximize buttons like classic Win98.</li>
+                <li>Drag title bars to move windows around.</li>
+                <li>Use the Quick Launch icons for shortcuts.</li>
+              </ul>
+            </section>
+            <section class="project-section">
+              <h3>Extras</h3>
+              <ul class="project-bullets">
+                <li>Play classic games in the Games window.</li>
+                <li>Open Notepad for quick notes.</li>
+                <li>Try MS-DOS commands like DIR and CD.</li>
+              </ul>
+            </section>
+          </div>
+        </div>
+      `;
+    }
+
+    function renderFindResultsHTML(query) {
+        const term = query.trim().toLowerCase();
+        const results = SEARCH_ENTRIES.filter((entry) => {
+            if (!term) return true;
+            const haystack = `${entry.label} ${entry.meta || ""}`.toLowerCase();
+            return haystack.includes(term);
+        });
+
+        if (!results.length) {
+            return `<div class="find-empty">No matches found.</div>`;
+        }
+
+        return results
+            .map((entry) => {
+                const meta = entry.meta ? `<span class="find-meta">${entry.meta}</span>` : "";
+                return `
+          <button type="button" class="find-result" data-find="item" data-type="${entry.type}" data-key="${entry.key}">
+            <span class="find-title">${entry.label}</span>
+            ${meta}
+          </button>
+        `;
+            })
+            .join("");
+    }
+
+    function wireFindWindow(windowEl) {
+        const findWindow = windowEl.querySelector(".find-window");
+        if (!findWindow || findWindow.dataset.bound === "true") return;
+        findWindow.dataset.bound = "true";
+
+        const input = findWindow.querySelector("#find-input");
+        const results = findWindow.querySelector(".find-results");
+        const clearBtn = findWindow.querySelector("[data-action='clear-find']");
+
+        const updateResults = () => {
+            if (!results) return;
+            const value = input ? input.value : "";
+            results.innerHTML = renderFindResultsHTML(value || "");
+        };
+
+        if (input) {
+            input.addEventListener("input", updateResults);
+        }
+
+        if (clearBtn && input) {
+            clearBtn.addEventListener("click", () => {
+                input.value = "";
+                updateResults();
+                input.focus();
+            });
+        }
+
+        if (results) {
+            results.addEventListener("click", (e) => {
+                const target = e.target.closest("[data-find='item']");
+                if (!target) return;
+                const type = target.dataset.type;
+                const key = target.dataset.key;
+                if (type === "project") {
+                    openProjectFolder(key);
+                    return;
+                }
+                handleOpenTarget(key);
+            });
+        }
     }
 
     function wireProjectFolders(windowEl) {
