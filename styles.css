@@ -1158,6 +1158,31 @@ body {
     }
 }
 
+.loading-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: #008080;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10000;
+}
+
+.loading-overlay img {
+    width: min(70vw, 70vh);
+    max-width: 640px;
+    min-width: 220px;
+    height: auto;
+    image-rendering: pixelated;
+    box-shadow: 3px 3px 0 #000000;
+    border: 2px solid var(--win98-border-dark);
+    background: var(--win98-window-bg);
+    padding: 8px;
+}
+
 
 /* ================================
    Responsive Tweaks

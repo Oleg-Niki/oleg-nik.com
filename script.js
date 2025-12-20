@@ -238,6 +238,7 @@
     document.addEventListener("DOMContentLoaded", init);
 
     function init() {
+        showFirstLoadScreen();
         // Ensure games window starts hidden (defensive)
         const popupGames = document.getElementById("popup-games");
         if (popupGames) {
@@ -1515,6 +1516,22 @@
         windows.forEach((win) => hideWindow(win));
         openWindows.clear();
         renderTaskbarButtons();
+    }
+
+    function showFirstLoadScreen() {
+        const loading = document.getElementById("loading-screen");
+        if (!loading) return;
+        const key = "win98-loading-shown";
+        const already = sessionStorage.getItem(key);
+        if (already) {
+            loading.remove();
+            return;
+        }
+        loading.classList.remove("hidden");
+        setTimeout(() => {
+            loading.classList.add("hidden");
+            sessionStorage.setItem(key, "true");
+        }, 1200);
     }
 
     /* --------------------------------------------------
