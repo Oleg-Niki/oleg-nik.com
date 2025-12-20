@@ -257,7 +257,15 @@
         initDragging();
         initSoundControl();
         initTimeControl();
+        initTicTacToeIcon();
         initRecycleBin();
+    }
+
+    function initTicTacToeIcon() {
+        const gamesWindow = document.getElementById("popup-games");
+        if (gamesWindow) {
+            wireGameIcons(gamesWindow);
+        }
     }
 
     /* --------------------------------------------------
@@ -457,6 +465,10 @@
 
         if (target === "recycle-bin") {
             openRecycleBinWindow();
+            return;
+        }
+        if (target === "tictactoe") {
+            openTicTacToeWindow();
             return;
         }
         if (target === "games") {
@@ -1206,6 +1218,21 @@
      * Games Window + BSOD
      * -------------------------------------------------- */
 
+    function wireGameIcons(container) {
+        if (!container || container.dataset.gamesBound === "true") return;
+        container.dataset.gamesBound = "true";
+        const gameButtons = container.querySelectorAll("[data-open-game]");
+        gameButtons.forEach((btn) => {
+            btn.addEventListener("click", (e) => {
+                e.preventDefault();
+                const game = btn.dataset.openGame;
+                if (game === "tictactoe") {
+                    openTicTacToeWindow();
+                }
+            });
+        });
+    }
+
     function openGamesWindow() {
         const gamesWindow = document.getElementById("popup-games");
         const bsodScreen = document.getElementById("bsod-screen");
@@ -1221,6 +1248,7 @@
                 bsodScreen.classList.add("hidden");
                 showWindow(gamesWindow);
                 centerWindow(gamesWindow, false);
+                wireGameIcons(gamesWindow);
             }, 1800);
         } else {
             // Next times: just toggle window
@@ -1228,6 +1256,7 @@
             if (isHidden) {
                 showWindow(gamesWindow);
                 centerWindow(gamesWindow, false);
+                wireGameIcons(gamesWindow);
             } else {
                 hideWindow(gamesWindow);
             }
@@ -1753,6 +1782,183 @@
         if (valueEl) valueEl.textContent = `${pct}%`;
         document.documentElement.dataset.volume = String(pct);
         window.__win98Volume = level;
+    }
+
+    /* --------------------------------------------------
+     * Tic Tac Toe
+     * -------------------------------------------------- */
+
+    function openTicTacToeWindow() {
+        const windowId = "window-tictactoe";
+        let windowEl = document.getElementById(windowId);
+
+        if (!windowEl) {
+            windowEl = document.createElement("section");
+            windowEl.id = windowId;
+            windowEl.className = "window window--primary hidden";
+            windowEl.setAttribute("role", "dialog");
+            windowEl.setAttribute("aria-modal", "false");
+            windowEl.setAttribute("aria-labelledby", `${windowId}-title`);
+            windowEl.innerHTML = buildTicTacToeWindow(windowId);
+            document.body.appendChild(windowEl);
+            wireWindowControls(windowEl);
+            initTicTacToe(windowEl);
+        } else {
+            showWindow(windowEl);
+        }
+
+        showWindow(windowEl);
+        centerWindow(windowEl, true);
+    }
+
+    function buildTicTacToeWindow(windowId) {
+        return `
+      <header class="window-titlebar drag-handle">
+        <div class="window-titlebar-left">
+          <img src="cd_rom-icon.png" alt="" class="window-title-icon" aria-hidden="true">
+          <span id="${windowId}-title" class="window-title">Tic Tac Toe</span>
+        </div>
+        <div class="window-titlebar-controls">
+          <button type="button" class="window-control window-control--minimize" data-action="minimize" data-target="${windowId}" aria-label="Minimize">
+            _
+          </button>
+          <button type="button" class="window-control window-control--maximize" data-action="maximize" data-target="${windowId}" aria-label="Maximize">
+            ${MAXIMIZE_LABEL}
+          </button>
+          <button type="button" class="window-control window-control--close" data-action="close" data-target="${windowId}" aria-label="Close">
+            X
+          </button>
+        </div>
+      </header>
+      <div class="window-body">
+        <div class="ttt-wrap">
+          <div class="ttt-status">Your turn (X)</div>
+          <div class="ttt-grid">
+            ${Array.from({ length: 9 }, (_, i) => `<button class="ttt-cell" data-index="${i}"></button>`).join("")}
+          </div>
+          <div class="ttt-actions">
+            <button type="button" class="ttt-reset">Reset</button>
+          </div>
+        </div>
+      </div>
+    `;
+    }
+
+    function initTicTacToe(windowEl) {
+        if (!windowEl || windowEl.dataset.tttBound === "true") return;
+        windowEl.dataset.tttBound = "true";
+        const statusEl = windowEl.querySelector(".ttt-status");
+        const cells = Array.from(windowEl.querySelectorAll(".ttt-cell"));
+        const resetBtn = windowEl.querySelector(".ttt-reset");
+
+        const state = {
+            board: Array(9).fill(null),
+            player: "X",
+            ai: "O",
+            gameOver: false,
+        };
+
+        const winningLines = [
+            [0, 1, 2],
+            [3, 4, 5],
+            [6, 7, 8],
+            [0, 3, 6],
+            [1, 4, 7],
+            [2, 5, 8],
+            [0, 4, 8],
+            [2, 4, 6],
+        ];
+
+        function render() {
+            cells.forEach((cell, idx) => {
+                cell.textContent = state.board[idx] || "";
+            });
+            if (state.gameOver) return;
+            statusEl.textContent = `Your turn (${state.player})`;
+        }
+
+        function checkWinner(board) {
+            for (const [a, b, c] of winningLines) {
+                if (board[a] && board[a] === board[b] && board[a] === board[c]) {
+                    return board[a];
+                }
+            }
+            if (board.every(Boolean)) return "tie";
+            return null;
+        }
+
+        function minimax(board, isAiTurn) {
+            const winner = checkWinner(board);
+            if (winner === state.ai) return { score: 1 };
+            if (winner === state.player) return { score: -1 };
+            if (winner === "tie") return { score: 0 };
+
+            const moves = [];
+            for (let i = 0; i < board.length; i++) {
+                if (!board[i]) {
+                    const newBoard = board.slice();
+                    newBoard[i] = isAiTurn ? state.ai : state.player;
+                    const result = minimax(newBoard, !isAiTurn);
+                    moves.push({ index: i, score: result.score });
+                }
+            }
+            if (isAiTurn) {
+                return moves.reduce((best, move) => (move.score > best.score ? move : best), { score: -Infinity });
+            }
+            return moves.reduce((best, move) => (move.score < best.score ? move : best), { score: Infinity });
+        }
+
+        function aiMove() {
+            const best = minimax(state.board, true);
+            if (best.index === undefined) return;
+            state.board[best.index] = state.ai;
+            const winner = checkWinner(state.board);
+            if (winner) {
+                endGame(winner);
+            } else {
+                statusEl.textContent = "Your turn (X)";
+            }
+            render();
+        }
+
+        function endGame(winner) {
+            state.gameOver = true;
+            if (winner === "tie") {
+                statusEl.textContent = "Tie game!";
+            } else if (winner === state.player) {
+                statusEl.textContent = "You win!";
+            } else {
+                statusEl.textContent = "Computer wins.";
+            }
+        }
+
+        function handlePlayerMove(index) {
+            if (state.gameOver || state.board[index]) return;
+            state.board[index] = state.player;
+            const winner = checkWinner(state.board);
+            if (winner) {
+                endGame(winner);
+            } else {
+                statusEl.textContent = "Computer thinking...";
+                aiMove();
+            }
+            render();
+        }
+
+        cells.forEach((cell) => {
+            cell.addEventListener("click", () => {
+                handlePlayerMove(Number(cell.dataset.index));
+            });
+        });
+
+        resetBtn.addEventListener("click", () => {
+            state.board = Array(9).fill(null);
+            state.gameOver = false;
+            statusEl.textContent = "Your turn (X)";
+            render();
+        });
+
+        render();
     }
 
     /* --------------------------------------------------

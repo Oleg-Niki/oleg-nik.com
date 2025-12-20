@@ -94,6 +94,8 @@ body {
 
 .game-icon {
     position: relative;
+    background: transparent;
+    border: none;
 }
 
 
@@ -1028,6 +1030,63 @@ body {
     padding-left: 16px;
     font-size: 12px;
     line-height: 1.4;
+}
+
+.ttt-wrap {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    align-items: center;
+}
+
+.ttt-status {
+    font-weight: bold;
+}
+
+.ttt-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 70px);
+    grid-template-rows: repeat(3, 70px);
+    gap: 4px;
+}
+
+.ttt-cell {
+    width: 70px;
+    height: 70px;
+    font-size: 28px;
+    font-family: var(--win98-font);
+    background: #ffffff;
+    border: 2px solid var(--win98-border-medium);
+    box-shadow: inset 1px 1px 0 var(--win98-border-light), inset -1px -1px 0 var(--win98-border-dark);
+    cursor: pointer;
+}
+
+.ttt-cell:active {
+    box-shadow: inset -1px -1px 0 var(--win98-border-light), inset 1px 1px 0 var(--win98-border-dark);
+}
+
+.ttt-actions {
+    display: flex;
+    gap: 8px;
+}
+
+.ttt-reset {
+    padding: 4px 10px;
+    font-family: var(--win98-font);
+    font-size: 12px;
+    background: #c0c0c0;
+    border-top: 2px solid var(--win98-border-light);
+    border-left: 2px solid var(--win98-border-light);
+    border-bottom: 2px solid var(--win98-border-dark);
+    border-right: 2px solid var(--win98-border-dark);
+    cursor: pointer;
+}
+
+.ttt-reset:active {
+    border-top: 2px solid var(--win98-border-dark);
+    border-left: 2px solid var(--win98-border-dark);
+    border-bottom: 2px solid var(--win98-border-light);
+    border-right: 2px solid var(--win98-border-light);
 }
 
 .spec-table {
