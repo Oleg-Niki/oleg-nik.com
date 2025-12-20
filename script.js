@@ -9,6 +9,7 @@
     const MAXIMIZE_LABEL = "";
     const SOUND_KEY = "win98-sound-enabled";
     const SOUND_VOLUME_KEY = "win98-sound-volume";
+    const RECYCLE_KEY = "win98-recycle-empty";
     const PAGE_ICONS = {
         about: "about-icon.png",
         gallery: "gallery-icon.png",
@@ -255,6 +256,8 @@
         initClock();
         initDragging();
         initSoundControl();
+        initTimeControl();
+        initRecycleBin();
     }
 
     /* --------------------------------------------------
@@ -382,6 +385,7 @@
         const maxY = desktop.clientHeight - iconHeight - gap;
 
         icons.forEach((icon) => {
+            if (icon.dataset.fixed === "true") return;
             icon.style.left = `${x}px`;
             icon.style.top = `${y}px`;
 
@@ -451,6 +455,10 @@
     function handleOpenTarget(target) {
         if (!target) return;
 
+        if (target === "recycle-bin") {
+            openRecycleBinWindow();
+            return;
+        }
         if (target === "games") {
             openGamesWindow();
             return;
@@ -1651,6 +1659,63 @@
         }
     }
 
+    /* --------------------------------------------------
+     * Time / Calendar Control
+     * -------------------------------------------------- */
+
+    function initTimeControl() {
+        const timeBtn = document.getElementById("time-button");
+        const menu = document.getElementById("calendar-menu");
+        if (!timeBtn || !menu) return;
+
+        const hideMenu = () => menu.classList.add("hidden");
+
+        const openMenuAt = (x, y) => {
+            menu.classList.remove("hidden");
+            const mh = menu.offsetHeight || 0;
+            const mw = menu.offsetWidth || 0;
+            const vw = window.innerWidth;
+            const vh = window.innerHeight;
+            const left = Math.min(Math.max(x, 4), vw - mw - 4);
+            const top = Math.max(4, Math.min(y - mh, vh - mh - 4));
+            menu.style.left = `${left}px`;
+            menu.style.top = `${top}px`;
+        };
+
+        timeBtn.addEventListener("contextmenu", (e) => {
+            e.preventDefault();
+            openMenuAt(e.clientX, e.clientY);
+        });
+
+        let touchTimer = null;
+        timeBtn.addEventListener("touchstart", (e) => {
+            const touch = e.touches[0];
+            if (!touch) return;
+            touchTimer = setTimeout(() => openMenuAt(touch.clientX, touch.clientY), 500);
+        }, { passive: true });
+
+        timeBtn.addEventListener("touchend", () => {
+            if (touchTimer) clearTimeout(touchTimer);
+        });
+
+        timeBtn.addEventListener("click", () => {
+            openCalendarWindow();
+            hideMenu();
+        });
+
+        menu.addEventListener("click", (e) => {
+            const btn = e.target.closest("[data-calendar='open']");
+            if (!btn) return;
+            openCalendarWindow();
+            hideMenu();
+        });
+
+        document.addEventListener("click", (e) => {
+            if (menu.contains(e.target) || timeBtn.contains(e.target)) return;
+            hideMenu();
+        });
+    }
+
     function getSoundPreference() {
         const stored = localStorage.getItem(SOUND_KEY);
         if (stored === "false") return false;
@@ -1688,6 +1753,278 @@
         if (valueEl) valueEl.textContent = `${pct}%`;
         document.documentElement.dataset.volume = String(pct);
         window.__win98Volume = level;
+    }
+
+    /* --------------------------------------------------
+     * Recycle Bin
+     * -------------------------------------------------- */
+
+    function initRecycleBin() {
+        const bin = document.getElementById("recycle-bin");
+        const menu = document.getElementById("recycle-menu");
+        const icon = document.getElementById("recycle-icon");
+        if (!bin || !menu || !icon) return;
+
+        let isEmpty = getRecycleState();
+        updateRecycleIcon(isEmpty, icon);
+
+        const hideMenu = () => menu.classList.add("hidden");
+
+        const openMenuAt = (x, y) => {
+            menu.classList.remove("hidden");
+            const mh = menu.offsetHeight || 0;
+            const mw = menu.offsetWidth || 0;
+            const vw = window.innerWidth;
+            const vh = window.innerHeight;
+            const left = Math.min(Math.max(x, 4), vw - mw - 4);
+            const top = Math.max(4, Math.min(y - mh, vh - mh - 4));
+            menu.style.left = `${left}px`;
+            menu.style.top = `${top}px`;
+        };
+
+        bin.addEventListener("contextmenu", (e) => {
+            e.preventDefault();
+            openMenuAt(e.clientX, e.clientY);
+        });
+
+        let touchTimer = null;
+        bin.addEventListener("touchstart", (e) => {
+            const touch = e.touches[0];
+            if (!touch) return;
+            touchTimer = setTimeout(() => openMenuAt(touch.clientX, touch.clientY), 500);
+        }, { passive: true });
+
+        bin.addEventListener("touchend", () => {
+            if (touchTimer) clearTimeout(touchTimer);
+        });
+
+        bin.addEventListener("dblclick", () => {
+            openRecycleBinWindow();
+        });
+
+        menu.addEventListener("click", (e) => {
+            const btn = e.target.closest("[data-recycle]");
+            if (!btn) return;
+            const action = btn.dataset.recycle;
+            switch (action) {
+                case "open":
+                    openRecycleBinWindow();
+                    break;
+                case "empty":
+                    isEmpty = true;
+                    setRecycleState(isEmpty);
+                    updateRecycleIcon(isEmpty, icon);
+                    playRecycleSound();
+                    break;
+                case "close":
+                    alert("Nice try. The Recycle Bin never really closes.");
+                    break;
+                case "delete":
+                    alert("WTF?! You just deleted the Recycle Bin.");
+                    bin.remove();
+                    break;
+            }
+            hideMenu();
+        });
+
+        document.addEventListener("click", (e) => {
+            if (menu.contains(e.target) || bin.contains(e.target)) return;
+            hideMenu();
+        });
+    }
+
+    function updateRecycleIcon(isEmpty, iconEl) {
+        iconEl.src = isEmpty ? "recycle_bin_empty-icon.png" : "recycle_bin_full-icon.png";
+        iconEl.alt = isEmpty ? "Recycle Bin (empty)" : "Recycle Bin (full)";
+    }
+
+    function setRecycleState(empty) {
+        localStorage.setItem(RECYCLE_KEY, empty ? "true" : "false");
+    }
+
+    function getRecycleState() {
+        const stored = localStorage.getItem(RECYCLE_KEY);
+        return stored === "true";
+    }
+
+    function playRecycleSound() {
+        try {
+            const audio = new Audio("recycle_bin.wav");
+            const vol = typeof window.__win98Volume === "number" ? window.__win98Volume : 1;
+            audio.volume = vol;
+            audio.play().catch(() => {});
+        } catch (err) {
+            // ignore
+        }
+    }
+
+    function openRecycleBinWindow() {
+        const windowId = "popup-recycle";
+        let windowEl = document.getElementById(windowId);
+
+        if (!windowEl) {
+            windowEl = document.createElement("section");
+            windowEl.id = windowId;
+            windowEl.className = "window window--primary hidden";
+            windowEl.setAttribute("role", "dialog");
+            windowEl.setAttribute("aria-modal", "false");
+            windowEl.setAttribute("aria-labelledby", `${windowId}-title`);
+            windowEl.innerHTML = buildRecycleWindow(windowId);
+            document.body.appendChild(windowEl);
+            wireWindowControls(windowEl);
+        }
+
+        showWindow(windowEl);
+        centerWindow(windowEl, true);
+    }
+
+    function buildRecycleWindow(windowId) {
+        return `
+      <header class="window-titlebar drag-handle">
+        <div class="window-titlebar-left">
+          <img src="recycle_bin_full-icon.png" alt="" class="window-title-icon" aria-hidden="true">
+          <span id="${windowId}-title" class="window-title">Recycle Bin</span>
+        </div>
+        <div class="window-titlebar-controls">
+          <button type="button" class="window-control window-control--minimize" data-action="minimize" data-target="${windowId}" aria-label="Minimize">
+            _
+          </button>
+          <button type="button" class="window-control window-control--maximize" data-action="maximize" data-target="${windowId}" aria-label="Maximize">
+            ${MAXIMIZE_LABEL}
+          </button>
+          <button type="button" class="window-control window-control--close" data-action="close" data-target="${windowId}" aria-label="Close">
+            X
+          </button>
+        </div>
+      </header>
+      <div class="window-body">
+        ${renderRecycleBody()}
+      </div>
+    `;
+    }
+
+    function renderRecycleBody() {
+        return `
+      <div class="folder-body">
+        <div class="folder-body-header">
+          <div class="folder-body-path">C:\\Recycle Bin</div>
+          <div class="folder-body-meta">Backlog tasks</div>
+        </div>
+        <p class="folder-body-text">
+          Backlog of tasks parked in the bin. Double-click to restore or leave them for later.
+        </p>
+        <div class="project-section">
+          <h3>Tasks</h3>
+          <ul class="project-bullets">
+            <li>Archive old project assets</li>
+            <li>Clean up temporary builds</li>
+            <li>Organize screenshots and exports</li>
+            <li>Review drafts before final publish</li>
+            <li>Clear completed bug tickets</li>
+          </ul>
+        </div>
+      </div>
+    `;
+    }
+
+    /* --------------------------------------------------
+     * Calendar Window
+     * -------------------------------------------------- */
+
+    function openCalendarWindow() {
+        const windowId = "popup-calendar";
+        let windowEl = document.getElementById(windowId);
+
+        if (!windowEl) {
+            windowEl = document.createElement("section");
+            windowEl.id = windowId;
+            windowEl.className = "window window--calendar hidden";
+            windowEl.setAttribute("role", "dialog");
+            windowEl.setAttribute("aria-modal", "false");
+            windowEl.setAttribute("aria-labelledby", `${windowId}-title`);
+            windowEl.innerHTML = buildCalendarWindow(windowId);
+            document.body.appendChild(windowEl);
+            wireWindowControls(windowEl);
+        } else {
+            const body = windowEl.querySelector(".window-body");
+            if (body) {
+                body.innerHTML = renderCalendarBody();
+            }
+        }
+
+        showWindow(windowEl);
+        centerWindow(windowEl, false);
+    }
+
+    function buildCalendarWindow(windowId) {
+        return `
+      <header class="window-titlebar drag-handle">
+        <div class="window-titlebar-left">
+          <img src="time_and_date-icon.png" alt="" class="window-title-icon" aria-hidden="true">
+          <span id="${windowId}-title" class="window-title">Calendar</span>
+        </div>
+        <div class="window-titlebar-controls">
+          <button type="button" class="window-control window-control--minimize" data-action="minimize" data-target="${windowId}" aria-label="Minimize">
+            _
+          </button>
+          <button type="button" class="window-control window-control--maximize" data-action="maximize" data-target="${windowId}" aria-label="Maximize">
+            ${MAXIMIZE_LABEL}
+          </button>
+          <button type="button" class="window-control window-control--close" data-action="close" data-target="${windowId}" aria-label="Close">
+            X
+          </button>
+        </div>
+      </header>
+      <div class="window-body">
+        ${renderCalendarBody()}
+      </div>
+    `;
+    }
+
+    function renderCalendarBody() {
+        const now = new Date();
+        const year = now.getFullYear();
+        const month = now.toLocaleString("default", { month: "long" });
+        const day = now.getDate();
+        const weekday = now.toLocaleString("default", { weekday: "long" });
+
+        const firstDay = new Date(year, now.getMonth(), 1).getDay();
+        const daysInMonth = new Date(year, now.getMonth() + 1, 0).getDate();
+        const weeks = [];
+        let currentDay = 1;
+        for (let row = 0; row < 6; row++) {
+            const cells = [];
+            for (let col = 0; col < 7; col++) {
+                const cellIndex = row * 7 + col;
+                const dateNumber = cellIndex - firstDay + 1;
+                if (dateNumber > 0 && dateNumber <= daysInMonth) {
+                    const isToday = dateNumber === day;
+                    cells.push(`<div class="cal-cell ${isToday ? "cal-cell--today" : ""}">${dateNumber}</div>`);
+                } else {
+                    cells.push(`<div class="cal-cell cal-cell--empty"></div>`);
+                }
+            }
+            weeks.push(`<div class="cal-row">${cells.join("")}</div>`);
+        }
+
+        return `
+      <div class="calendar-wrap">
+        <div class="calendar-header">
+          <div class="calendar-title">${month} ${year}</div>
+          <div class="calendar-today">${weekday}, ${month} ${day}</div>
+        </div>
+        <div class="calendar-grid">
+          <div class="cal-head">Sun</div>
+          <div class="cal-head">Mon</div>
+          <div class="cal-head">Tue</div>
+          <div class="cal-head">Wed</div>
+          <div class="cal-head">Thu</div>
+          <div class="cal-head">Fri</div>
+          <div class="cal-head">Sat</div>
+          ${weeks.join("")}
+        </div>
+      </div>
+    `;
     }
 
     /* --------------------------------------------------

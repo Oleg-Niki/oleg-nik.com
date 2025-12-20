@@ -56,6 +56,11 @@
       <img src="ms_dos-icon.png" alt="MS-DOS">
       <span class="desktop-icon-label">MS-DOS</span>
     </button>
+
+        <button type="button" id="recycle-bin" class="desktop-icon" data-fixed="true" aria-haspopup="true" aria-controls="recycle-menu" style="right: 12px; bottom: 48px;">
+      <img id="recycle-icon" src="recycle_bin_full-icon.png" alt="Recycle Bin">
+      <span class="desktop-icon-label">Recycle Bin</span>
+    </button>
     </main>
 
     <!-- Taskbar -->
@@ -88,6 +93,9 @@
         <div id="taskbar-clock" class="taskbar-clock" aria-label="Clock and sound">
             <button id="sound-button" class="sound-button" type="button" aria-haspopup="true" aria-controls="sound-menu">
                 <img id="sound-icon" src="sound_on-icon.png" alt="Sound on" class="sound-icon" aria-hidden="true">
+            </button>
+            <button id="time-button" class="time-button" type="button" aria-haspopup="true" aria-controls="calendar-menu">
+                <img id="time-icon" src="time_and_date-icon.png" alt="Time and date" class="time-icon" aria-hidden="true">
             </button>
             <span id="taskbar-clock-text" class="taskbar-clock-text">12:00 PM</span>
         </div>
@@ -178,6 +186,17 @@
             <input id="volume-slider" class="volume-slider" type="range" min="0" max="100" step="1" value="100">
             <span id="volume-value" class="volume-value">100%</span>
         </div>
+    </div>
+
+    <div id="calendar-menu" class="context-menu hidden" role="menu">
+        <button type="button" class="context-menu-item" data-calendar="open" role="menuitem">Calendar</button>
+    </div>
+
+    <div id="recycle-menu" class="context-menu hidden" role="menu">
+        <button type="button" class="context-menu-item" data-recycle="open" role="menuitem">Open</button>
+        <button type="button" class="context-menu-item" data-recycle="empty" role="menuitem">Empty Recycle Bin</button>
+        <button type="button" class="context-menu-item" data-recycle="close" role="menuitem">Close</button>
+        <button type="button" class="context-menu-item" data-recycle="delete" role="menuitem">Delete</button>
     </div>
 
     <!-- Main Window (dynamic content) -->
