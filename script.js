@@ -7,12 +7,14 @@
     const maximizedWindows = new Set();
     const windowRestoreState = new Map();
     const MAXIMIZE_LABEL = "";
+    const SOUND_KEY = "win98-sound-enabled";
+    const SOUND_VOLUME_KEY = "win98-sound-volume";
     const PAGE_ICONS = {
         about: "about-icon.png",
         gallery: "gallery-icon.png",
         contact: "contact-icon.png",
         help: "help-icon.png",
-        find: "search-icon.png",
+        find: "search-iconm.png",
     };
 
     const PROJECT_FOLDERS = [{
@@ -252,6 +254,7 @@
         initGlobalClickHandlers();
         initClock();
         initDragging();
+        initSoundControl();
     }
 
     /* --------------------------------------------------
@@ -1535,12 +1538,166 @@
     }
 
     /* --------------------------------------------------
+     * Sound Control
+     * -------------------------------------------------- */
+
+    function initSoundControl() {
+        const soundBtn = document.getElementById("sound-button");
+        const soundIcon = document.getElementById("sound-icon");
+        const menu = document.getElementById("sound-menu");
+        const volumePanel = document.getElementById("volume-panel");
+        const volumeSlider = document.getElementById("volume-slider");
+        const volumeValue = document.getElementById("volume-value");
+        if (!soundBtn || !soundIcon || !menu || !volumePanel || !volumeSlider || !volumeValue) return;
+
+        let soundEnabled = getSoundPreference();
+        let volumeLevel = getVolumePreference();
+        updateSoundIcon(soundEnabled, soundIcon);
+        setSoundState(soundEnabled);
+        setVolumeState(volumeLevel, volumeValue);
+
+        const hideMenu = () => {
+            menu.classList.add("hidden");
+        };
+
+        const openMenuAt = (x, y) => {
+            menu.classList.remove("hidden");
+            const mh = menu.offsetHeight || 0;
+            const mw = menu.offsetWidth || 0;
+            const vw = window.innerWidth;
+            const vh = window.innerHeight;
+            const left = Math.min(Math.max(x, 4), vw - mw - 4);
+            const top = Math.max(4, Math.min(y - mh, vh - mh - 4));
+            menu.style.left = `${left}px`;
+            menu.style.top = `${top}px`;
+        };
+
+        soundBtn.addEventListener("contextmenu", (e) => {
+            e.preventDefault();
+            openMenuAt(e.clientX, e.clientY);
+        });
+
+        // Long press on touch to open
+        let touchTimer = null;
+        soundBtn.addEventListener("touchstart", (e) => {
+            const touch = e.touches[0];
+            if (!touch) return;
+            touchTimer = setTimeout(() => {
+                openMenuAt(touch.clientX, touch.clientY);
+            }, 500);
+        }, { passive: true });
+
+        soundBtn.addEventListener("touchend", () => {
+            if (touchTimer) clearTimeout(touchTimer);
+        });
+
+        soundBtn.addEventListener("click", () => {
+            soundEnabled = !soundEnabled;
+            setSoundPreference(soundEnabled);
+            setSoundState(soundEnabled);
+            updateSoundIcon(soundEnabled, soundIcon);
+            hideMenu();
+            hideVolumePanel();
+        });
+
+        menu.addEventListener("click", (e) => {
+            const btn = e.target.closest("[data-sound]");
+            if (!btn) return;
+            const action = btn.dataset.sound;
+            if (action === "volume") {
+                const rect = soundBtn.getBoundingClientRect();
+                openVolumePanel(rect.left, rect.top - 4);
+                hideMenu();
+                return;
+            }
+            soundEnabled = action === "on";
+            setSoundPreference(soundEnabled);
+            setSoundState(soundEnabled);
+            updateSoundIcon(soundEnabled, soundIcon);
+            hideMenu();
+            hideVolumePanel();
+        });
+
+        document.addEventListener("click", (e) => {
+            if (menu.contains(e.target) || soundBtn.contains(e.target)) return;
+            hideMenu();
+            if (!volumePanel.contains(e.target)) {
+                hideVolumePanel();
+            }
+        });
+
+        volumeSlider.addEventListener("input", () => {
+            volumeLevel = Number(volumeSlider.value) / 100;
+            setVolumePreference(volumeLevel);
+            setVolumeState(volumeLevel, volumeValue);
+        });
+
+        function openVolumePanel(x, y) {
+            volumeSlider.value = String(Math.round(volumeLevel * 100));
+            setVolumeState(volumeLevel, volumeValue);
+            volumePanel.classList.remove("hidden");
+            const panelWidth = volumePanel.offsetWidth || 0;
+            const panelHeight = volumePanel.offsetHeight || 0;
+            const vw = window.innerWidth;
+            const vh = window.innerHeight;
+            const left = Math.min(Math.max(x, 4), vw - panelWidth - 4);
+            const top = Math.max(4, Math.min(y - panelHeight, vh - panelHeight - 4));
+            volumePanel.style.left = `${left}px`;
+            volumePanel.style.top = `${top}px`;
+        }
+
+        function hideVolumePanel() {
+            volumePanel.classList.add("hidden");
+        }
+    }
+
+    function getSoundPreference() {
+        const stored = localStorage.getItem(SOUND_KEY);
+        if (stored === "false") return false;
+        return true;
+    }
+
+    function setSoundPreference(enabled) {
+        localStorage.setItem(SOUND_KEY, enabled ? "true" : "false");
+    }
+
+    function updateSoundIcon(enabled, iconEl) {
+        iconEl.src = enabled ? "sound_on-icon.png" : "sound_off-icon.png";
+        iconEl.alt = enabled ? "Sound on" : "Sound off";
+    }
+
+    function setSoundState(enabled) {
+        document.documentElement.dataset.sound = enabled ? "on" : "off";
+        window.__win98SoundEnabled = enabled;
+    }
+
+    function getVolumePreference() {
+        const stored = localStorage.getItem(SOUND_VOLUME_KEY);
+        if (stored === null || stored === undefined || stored === "") return 1;
+        const num = Number(stored);
+        if (Number.isNaN(num)) return 1;
+        return Math.min(Math.max(num, 0), 1);
+    }
+
+    function setVolumePreference(level) {
+        localStorage.setItem(SOUND_VOLUME_KEY, String(level));
+    }
+
+    function setVolumeState(level, valueEl) {
+        const pct = Math.round(level * 100);
+        if (valueEl) valueEl.textContent = `${pct}%`;
+        document.documentElement.dataset.volume = String(pct);
+        window.__win98Volume = level;
+    }
+
+    /* --------------------------------------------------
      * Clock
      * -------------------------------------------------- */
 
     function initClock() {
         const clockEl = document.getElementById("taskbar-clock");
-        if (!clockEl) return;
+        const clockText = document.getElementById("taskbar-clock-text") || clockEl;
+        if (!clockEl || !clockText) return;
 
         function updateClock() {
             const now = new Date();
@@ -1548,7 +1705,7 @@
                 hour: "2-digit",
                 minute: "2-digit",
             });
-            clockEl.textContent = timeString;
+            clockText.textContent = timeString;
         }
 
         updateClock();

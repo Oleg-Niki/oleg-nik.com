@@ -84,9 +84,12 @@
         <!-- Open / Minimized Windows Area -->
         <div id="minimized-windows" class="taskbar-windows" aria-label="Open windows"></div>
 
-        <!-- Taskbar Clock -->
-        <div id="taskbar-clock" class="taskbar-clock" aria-label="Clock">
-            12:00 PM
+        <!-- Sound + Clock -->
+        <div id="taskbar-clock" class="taskbar-clock" aria-label="Clock and sound">
+            <button id="sound-button" class="sound-button" type="button" aria-haspopup="true" aria-controls="sound-menu">
+                <img id="sound-icon" src="sound_on-icon.png" alt="Sound on" class="sound-icon" aria-hidden="true">
+            </button>
+            <span id="taskbar-clock-text" class="taskbar-clock-text">12:00 PM</span>
         </div>
     </footer>
 
@@ -161,6 +164,21 @@
             </li>
         </ul>
     </nav>
+
+    <!-- Sound Context Menu -->
+    <div id="sound-menu" class="context-menu hidden" role="menu">
+        <button type="button" class="context-menu-item" data-sound="on" role="menuitem">Sound On</button>
+        <button type="button" class="context-menu-item" data-sound="off" role="menuitem">Sound Off</button>
+        <button type="button" class="context-menu-item" data-sound="volume" role="menuitem">Volume...</button>
+    </div>
+
+    <div id="volume-panel" class="context-menu volume-panel hidden" role="menu">
+        <div class="volume-row">
+            <label for="volume-slider" class="volume-label">Volume</label>
+            <input id="volume-slider" class="volume-slider" type="range" min="0" max="100" step="1" value="100">
+            <span id="volume-value" class="volume-value">100%</span>
+        </div>
+    </div>
 
     <!-- Main Window (dynamic content) -->
     <section id="main-content" class="window window--primary hidden" role="dialog" aria-modal="false" aria-labelledby="main-window-title">
