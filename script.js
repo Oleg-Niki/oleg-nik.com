@@ -851,6 +851,9 @@
         if (folder.id === "racing") {
             return renderRacingProject();
         }
+        if (folder.id === "engr270") {
+            return renderEngr270Project();
+        }
         const fileList = folder.contents.map((item) => `<li>${item}</li>`).join("");
         return `
       <div class="folder-body">
@@ -873,6 +876,80 @@
               ${fileList}
             </ul>
           </div>
+        </div>
+      </div>
+    `;
+    }
+
+    function renderEngr270Project() {
+        return `
+      <div class="folder-body folder-body--project">
+        <div class="folder-body-header">
+          <div class="folder-body-path">C:\\Projects\\Engr270\\Hardenability</div>
+          <div class="folder-body-meta">Jominy End-Quench Test | Materials Lab</div>
+        </div>
+
+        <div class="project-hero">
+          <div>
+            <h2 class="project-title">ENGR 270 — Hardenability of Steels</h2>
+            <p class="project-subtitle">Lab report: Jominy End-Quench (1040 vs 4140)</p>
+          </div>
+          <div class="stat-cards">
+            <div class="stat-card">
+              <span class="stat-label">Lab</span>
+              <span class="stat-value">Mon 12:45, Apr 28 2025</span>
+            </div>
+            <div class="stat-card">
+              <span class="stat-label">Group</span>
+              <span class="stat-value">GGOY</span>
+            </div>
+            <div class="stat-card">
+              <span class="stat-label">Author</span>
+              <span class="stat-value">Oleg Nikitashin</span>
+            </div>
+          </div>
+          <div class="project-actions">
+            <a class="ms-button" href="assets/projects/engr270/ENGR270_Lab_Hardenability%20of%20Steels.pdf" target="_blank" rel="noopener noreferrer">Open PDF</a>
+          </div>
+        </div>
+
+        <div class="project-section-grid">
+          <section class="project-section">
+            <h3>Objective</h3>
+            <p>Examine how cooling rate shapes hardness profiles in 1040 vs 4140 steels and why alloying boosts hardenability and martensite depth.</p>
+          </section>
+
+          <section class="project-section">
+            <h3>Background</h3>
+            <ul class="project-bullets">
+              <li>Slow cooling → ferrite/pearlite; fast quench → martensite + higher hardness.</li>
+              <li>Cr/Mo/Ni additions raise hardenability, keeping hardness deeper from the quenched end.</li>
+            </ul>
+          </section>
+
+          <section class="project-section">
+            <h3>Procedure</h3>
+            <ul class="project-bullets">
+              <li>Heat 1040 and 4140 bars to ~800°C for 45 minutes.</li>
+              <li>Jominy end-quench with water at one end.</li>
+              <li>Measure Rockwell C hardness along length at set intervals.</li>
+            </ul>
+          </section>
+
+          <section class="project-section">
+            <h3>Discussion</h3>
+            <ul class="project-bullets">
+              <li>4140 retained higher hardness farther from quenched end → superior hardenability.</li>
+              <li>1040 dropped hardness faster with distance, showing limited martensite depth.</li>
+              <li>Data shows alloying keeps cooling curve within martensite range longer.</li>
+            </ul>
+          </section>
+
+          <section class="project-section">
+            <h3>Deliverable</h3>
+            <p>Full lab report with hardness profiles, cooling rate discussion, and microstructure notes.</p>
+            <a class="ms-button" href="assets/projects/engr270/ENGR270_Lab_Hardenability%20of%20Steels.pdf" target="_blank" rel="noopener noreferrer">View PDF</a>
+          </section>
         </div>
       </div>
     `;

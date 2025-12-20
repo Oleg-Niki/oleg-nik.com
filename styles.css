@@ -1002,6 +1002,12 @@ body {
     gap: 10px;
 }
 
+.project-actions {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
 @media (max-width: 640px) {
     .project-hero {
         padding: 6px;
