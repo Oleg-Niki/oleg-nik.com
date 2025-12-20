@@ -854,6 +854,9 @@
         if (folder.id === "engr270") {
             return renderEngr270Project();
         }
+        if (folder.id === "susty") {
+            return renderSustyProject();
+        }
         const fileList = folder.contents.map((item) => `<li>${item}</li>`).join("");
         return `
       <div class="folder-body">
@@ -1293,6 +1296,108 @@
               <li>Buckling calc on top chord using compressive strength 6.9 MPa.</li>
               <li>Stress = F / A with A = 1.008e-5 m²; FoS = allowable / |stress|.</li>
             </ul>
+          </section>
+        </div>
+      </div>
+    `;
+    }
+
+    function renderSustyProject() {
+        const gallery = [
+            { src: "assets/projects/susty/minicity-sim-mateo-detail2.1.jpg", caption: "LED card detail (2.1)" },
+            { src: "assets/projects/susty/minicity-sim-mateo-detail2.2.jpg", caption: "Interactive controls (2.2)" },
+            { src: "assets/projects/susty/minicity-sim-mateo-detail2.jpg", caption: "LED card array (2)" },
+            { src: "assets/projects/susty/minicity-sim-mateo-detail3.jpg", caption: "UI milestones" },
+            { src: "assets/projects/susty/minicity-sim-mateo-detail4.jpg", caption: "Physical buttons + cards" },
+            { src: "assets/projects/susty/minicity-sim-mateo-detail5.jpg", caption: "LED feedback closeup" },
+            { src: "assets/projects/susty/minicity-sim-mateo-detail6.jpg", caption: "Node/serial wiring" },
+            { src: "assets/projects/susty/minicity-sim-mateo-detail7.jpg", caption: "Booth setup" },
+        ];
+
+        const galleryHtml = gallery
+            .map(
+                (item) => `
+          <div class="project-media">
+            <img src="${item.src}" alt="${item.caption}">
+            <p class="project-media-caption">${item.caption}</p>
+          </div>
+        `
+            )
+            .join("");
+
+        return `
+      <div class="folder-body folder-body--project">
+        <div class="folder-body-header">
+          <div class="folder-body-path">C:\\Projects\\Sustainability\\SimMateo</div>
+          <div class="folder-body-meta">Clean energy outreach exhibit</div>
+        </div>
+
+        <div class="project-hero">
+          <div>
+            <h2 class="project-title">SIM Mateo — Clean Energy Exhibit</h2>
+            <p class="project-subtitle">Interactive LEDs + web UI showing San Mateo clean electricity progress</p>
+          </div>
+          <div class="stat-cards">
+            <div class="stat-card">
+              <span class="stat-label">Mode</span>
+              <span class="stat-value">Live STEM demo</span>
+            </div>
+            <div class="stat-card">
+              <span class="stat-label">Stack</span>
+              <span class="stat-value">Node.js + WebSockets + Arduino</span>
+            </div>
+            <div class="stat-card">
+              <span class="stat-label">Hardware</span>
+              <span class="stat-value">MEGA + 4x NANO</span>
+            </div>
+          </div>
+          <div class="project-media">
+            <img src="assets/projects/susty/sim_mate_action0.gif" alt="SIM Mateo main animation">
+            <p class="project-media-caption">Main interaction loop — cards, LEDs, and milestones</p>
+          </div>
+          <div class="project-actions">
+            <a class="ms-button" href="https://github.com/Oleg-Niki/Sustainability-Team-CSM" target="_blank" rel="noopener noreferrer">GitHub Repo</a>
+          </div>
+        </div>
+
+        <div class="project-section-grid">
+          <section class="project-section">
+            <h3>Overview</h3>
+            <p>Hands-on outreach exhibit letting visitors guess California/San Mateo clean energy share. Arduino-powered LEDs + web UI reveal the live mix with sound and animations.</p>
+            <ul class="project-bullets">
+              <li>Physical controls (buttons/cards) with LED feedback.</li>
+              <li>Real-time UI via WebSockets from Node.js bridge to Arduino MEGA + NANOs.</li>
+              <li>Audio/visual milestones for correct guesses and progress highlights.</li>
+            </ul>
+          </section>
+
+          <section class="project-section">
+            <h3>System Architecture</h3>
+            <ul class="project-bullets">
+              <li>MEGA handles LED logic + serial comms to multiple NANOs (per LED group).</li>
+              <li>Node.js (serialport + ws + express) bridges hardware to browser UI.</li>
+              <li>Browser UI renders cards, milestones, and playback of sounds/animations.</li>
+            </ul>
+          </section>
+
+          <section class="project-section">
+            <h3>How It Works</h3>
+            <ul class="project-bullets">
+              <li>Start Node server → serves UI + WebSockets, listens to MEGA.</li>
+              <li>Visitors tap virtual cards; commands go to MEGA, LEDs update, UI syncs.</li>
+              <li>Milestones: sound + animation when clean energy share crosses thresholds.</li>
+            </ul>
+          </section>
+
+          <section class="project-section">
+            <h3>Gallery</h3>
+            <div class="project-media">
+              <img src="assets/projects/susty/sim_mate_action1.gif" alt="SIM Mateo secondary animation">
+              <p class="project-media-caption">Secondary animation — LED/card response</p>
+            </div>
+            <div class="project-media-collection">
+              ${galleryHtml}
+            </div>
           </section>
         </div>
       </div>
