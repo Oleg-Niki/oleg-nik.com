@@ -1089,6 +1089,120 @@ body {
     border-right: 2px solid var(--win98-border-light);
 }
 
+/* Minesweeper */
+.ms-wrap {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    align-items: center;
+}
+
+.ms-top {
+    display: grid;
+    grid-template-columns: 60px 60px 60px;
+    align-items: center;
+    gap: 6px;
+}
+
+.ms-counter {
+    background: #000000;
+    color: #ff0000;
+    font-family: "Courier New", monospace;
+    font-size: 16px;
+    padding: 4px 6px;
+    text-align: center;
+    border: 2px solid var(--win98-border-medium);
+    box-shadow: inset -1px -1px 0 var(--win98-border-light), inset 1px 1px 0 var(--win98-border-dark);
+}
+
+.ms-reset {
+    width: 60px;
+    height: 36px;
+    font-size: 16px;
+    background: #c0c0c0;
+    border-top: 2px solid var(--win98-border-light);
+    border-left: 2px solid var(--win98-border-light);
+    border-bottom: 2px solid var(--win98-border-dark);
+    border-right: 2px solid var(--win98-border-dark);
+    cursor: pointer;
+}
+
+.ms-reset:active {
+    border-top: 2px solid var(--win98-border-dark);
+    border-left: 2px solid var(--win98-border-dark);
+    border-bottom: 2px solid var(--win98-border-light);
+    border-right: 2px solid var(--win98-border-light);
+}
+
+.ms-grid {
+    display: grid;
+    gap: 2px;
+    background: #808080;
+    padding: 6px;
+    border: 2px solid var(--win98-border-dark);
+}
+
+.ms-cell {
+    width: 28px;
+    height: 28px;
+    background: #c0c0c0;
+    border: 2px solid #ffffff;
+    border-right-color: #808080;
+    border-bottom-color: #808080;
+    font-family: var(--win98-font);
+    font-size: 14px;
+    cursor: pointer;
+    padding: 0;
+}
+
+.ms-cell--revealed {
+    background: #d4d4d4;
+    border: 1px solid #808080;
+}
+
+.ms-cell--mine {
+    background: #ffcccc;
+    color: #ff0000;
+}
+
+.ms-flag {
+    color: #c00000;
+    font-weight: bold;
+}
+
+.ms-num-1 { color: #0000ff; }
+.ms-num-2 { color: #008000; }
+.ms-num-3 { color: #ff0000; }
+.ms-num-4 { color: #000080; }
+.ms-num-5 { color: #800000; }
+.ms-num-6 { color: #008080; }
+.ms-num-7 { color: #000000; }
+.ms-num-8 { color: #808080; }
+
+.ms-actions {
+    display: flex;
+    gap: 8px;
+}
+
+.ms-button {
+    padding: 4px 10px;
+    font-family: var(--win98-font);
+    font-size: 12px;
+    background: #c0c0c0;
+    border-top: 2px solid var(--win98-border-light);
+    border-left: 2px solid var(--win98-border-light);
+    border-bottom: 2px solid var(--win98-border-dark);
+    border-right: 2px solid var(--win98-border-dark);
+    cursor: pointer;
+}
+
+.ms-button:active {
+    border-top: 2px solid var(--win98-border-dark);
+    border-left: 2px solid var(--win98-border-dark);
+    border-bottom: 2px solid var(--win98-border-light);
+    border-right: 2px solid var(--win98-border-light);
+}
+
 /* Durak (Дурак) */
 .durak-wrap {
     display: flex;

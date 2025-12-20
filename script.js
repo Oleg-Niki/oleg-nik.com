@@ -259,9 +259,17 @@
         initTimeControl();
         initTicTacToeIcon();
         initRecycleBin();
+        initMinesweeperIcon();
     }
 
     function initTicTacToeIcon() {
+        const gamesWindow = document.getElementById("popup-games");
+        if (gamesWindow) {
+            wireGameIcons(gamesWindow);
+        }
+    }
+
+    function initMinesweeperIcon() {
         const gamesWindow = document.getElementById("popup-games");
         if (gamesWindow) {
             wireGameIcons(gamesWindow);
@@ -1230,6 +1238,8 @@
                     openTicTacToeWindow();
                 } else if (game === "durak") {
                     openDurakWindow();
+                } else if (game === "minesweeper") {
+                    openMinesweeperWindow();
                 }
             });
         });
@@ -1961,6 +1971,315 @@
         });
 
         render();
+    }
+
+    /* --------------------------------------------------
+     * Minesweeper (Beginner-style)
+     * -------------------------------------------------- */
+
+    function openMinesweeperWindow() {
+        const windowId = "window-minesweeper";
+        let windowEl = document.getElementById(windowId);
+
+        if (!windowEl) {
+            windowEl = document.createElement("section");
+            windowEl.id = windowId;
+            windowEl.className = "window window--primary hidden";
+            windowEl.setAttribute("role", "dialog");
+            windowEl.setAttribute("aria-modal", "false");
+            windowEl.setAttribute("aria-labelledby", `${windowId}-title`);
+            windowEl.innerHTML = buildMinesweeperWindow(windowId);
+            document.body.appendChild(windowEl);
+            wireWindowControls(windowEl);
+            initMinesweeper(windowEl);
+        }
+
+        showWindow(windowEl);
+        centerWindow(windowEl, true);
+    }
+
+    function buildMinesweeperWindow(windowId) {
+        return `
+      <header class="window-titlebar drag-handle">
+        <div class="window-titlebar-left">
+          <img src="minesweeper-icon.png" alt="" class="window-title-icon" aria-hidden="true">
+          <span id="${windowId}-title" class="window-title">Minesweeper</span>
+        </div>
+        <div class="window-titlebar-controls">
+          <button type="button" class="window-control window-control--minimize" data-action="minimize" data-target="${windowId}" aria-label="Minimize">
+            _
+          </button>
+          <button type="button" class="window-control window-control--maximize" data-action="maximize" data-target="${windowId}" aria-label="Maximize">
+            ${MAXIMIZE_LABEL}
+          </button>
+          <button type="button" class="window-control window-control--close" data-action="close" data-target="${windowId}" aria-label="Close">
+            X
+          </button>
+        </div>
+      </header>
+      <div class="window-body">
+        <div class="ms-wrap">
+          <div class="ms-top">
+            <div class="ms-counter" id="ms-mines">010</div>
+            <button type="button" class="ms-reset" id="ms-reset">:)</button>
+            <div class="ms-counter" id="ms-timer">000</div>
+          </div>
+          <div class="ms-grid" id="ms-grid" aria-label="Minesweeper grid"></div>
+          <div class="ms-actions">
+            <button type="button" class="ms-button" id="ms-new">New Game</button>
+          </div>
+        </div>
+      </div>
+    `;
+    }
+
+    function initMinesweeper(windowEl) {
+        if (!windowEl || windowEl.dataset.msBound === "true") return;
+        windowEl.dataset.msBound = "true";
+
+        const gridEl = windowEl.querySelector("#ms-grid");
+        const minesEl = windowEl.querySelector("#ms-mines");
+        const timerEl = windowEl.querySelector("#ms-timer");
+        const resetBtn = windowEl.querySelector("#ms-reset");
+        const newBtn = windowEl.querySelector("#ms-new");
+
+        const rows = 9;
+        const cols = 9;
+        const minesCount = 10;
+
+        const state = {
+            board: [],
+            minesLeft: minesCount,
+            timer: 0,
+            timerId: null,
+            running: false,
+            gameOver: false,
+        };
+
+        function buildBoard() {
+            const board = Array.from({ length: rows }, () =>
+                Array.from({ length: cols }, () => ({
+                    mine: false,
+                    revealed: false,
+                    flagged: false,
+                    adjacent: 0,
+                }))
+            );
+            let placed = 0;
+            while (placed < minesCount) {
+                const r = Math.floor(Math.random() * rows);
+                const c = Math.floor(Math.random() * cols);
+                if (!board[r][c].mine) {
+                    board[r][c].mine = true;
+                    placed++;
+                }
+            }
+            const dirs = [
+                [-1, -1], [-1, 0], [-1, 1],
+                [0, -1], [0, 1],
+                [1, -1], [1, 0], [1, 1],
+            ];
+            for (let r = 0; r < rows; r++) {
+                for (let c = 0; c < cols; c++) {
+                    if (board[r][c].mine) continue;
+                    let adj = 0;
+                    for (const [dr, dc] of dirs) {
+                        const nr = r + dr;
+                        const nc = c + dc;
+                        if (nr >= 0 && nr < rows && nc >= 0 && nc < cols && board[nr][nc].mine) {
+                            adj++;
+                        }
+                    }
+                    board[r][c].adjacent = adj;
+                }
+            }
+            state.board = board;
+        }
+
+        function renderGrid() {
+            gridEl.innerHTML = "";
+            gridEl.style.gridTemplateColumns = `repeat(${cols}, 28px)`;
+            state.board.forEach((row, r) => {
+                row.forEach((cell, c) => {
+                    const btn = document.createElement("button");
+                    btn.className = "ms-cell";
+                    btn.dataset.row = r;
+                    btn.dataset.col = c;
+                    if (cell.revealed) {
+                        btn.classList.add("ms-cell--revealed");
+                        if (cell.mine) {
+                            btn.textContent = "X";
+                            btn.classList.add("ms-cell--mine");
+                        } else if (cell.adjacent > 0) {
+                            btn.textContent = String(cell.adjacent);
+                            btn.classList.add(`ms-num-${cell.adjacent}`);
+                        }
+                    } else if (cell.flagged) {
+                        btn.textContent = "F";
+                        btn.classList.add("ms-flag");
+                    }
+                    gridEl.appendChild(btn);
+                });
+            });
+        }
+
+        function updateCounters() {
+            minesEl.textContent = String(Math.max(0, state.minesLeft)).padStart(3, "0");
+            timerEl.textContent = String(Math.min(999, state.timer)).padStart(3, "0");
+        }
+
+        function startTimer() {
+            if (state.running) return;
+            state.running = true;
+            state.timerId = setInterval(() => {
+                state.timer += 1;
+                if (state.timer >= 999) {
+                    state.timer = 999;
+                    clearInterval(state.timerId);
+                }
+                updateCounters();
+            }, 1000);
+        }
+
+        function stopTimer() {
+            if (state.timerId) clearInterval(state.timerId);
+            state.timerId = null;
+            state.running = false;
+        }
+
+        function revealCell(r, c) {
+            const cell = state.board[r][c];
+            if (cell.revealed || cell.flagged || state.gameOver) return;
+            cell.revealed = true;
+            if (cell.mine) {
+                cell.exploded = true;
+                endGame(false);
+                return;
+            }
+            if (cell.adjacent === 0) {
+                floodReveal(r, c);
+            }
+            checkWin();
+            renderGrid();
+        }
+
+        function floodReveal(r, c) {
+            const stack = [[r, c]];
+            const dirs = [
+                [-1, -1], [-1, 0], [-1, 1],
+                [0, -1], [0, 1],
+                [1, -1], [1, 0], [1, 1],
+            ];
+            while (stack.length) {
+                const [cr, cc] = stack.pop();
+                const cell = state.board[cr][cc];
+                if (!cell || cell.flagged) continue;
+                cell.revealed = true;
+                if (cell.adjacent !== 0) continue;
+                for (const [dr, dc] of dirs) {
+                    const nr = cr + dr;
+                    const nc = cc + dc;
+                    if (nr >= 0 && nr < rows && nc >= 0 && nc < cols) {
+                        const neighbor = state.board[nr][nc];
+                        if (!neighbor.revealed && !neighbor.mine) {
+                            stack.push([nr, nc]);
+                        }
+                    }
+                }
+            }
+        }
+
+        function toggleFlag(r, c) {
+            const cell = state.board[r][c];
+            if (cell.revealed || state.gameOver) return;
+            cell.flagged = !cell.flagged;
+            state.minesLeft += cell.flagged ? -1 : 1;
+            renderGrid();
+            updateCounters();
+        }
+
+        function endGame(won) {
+            state.gameOver = true;
+            stopTimer();
+            state.board.forEach((row) =>
+                row.forEach((cell) => {
+                    if (cell.mine) cell.revealed = true;
+                })
+            );
+            renderGrid();
+            state.running = false;
+            if (!won) {
+                resetBtn.textContent = ":(";
+            } else {
+                resetBtn.textContent = "B-)";
+            }
+        }
+
+        function checkWin() {
+            const allSafeRevealed = state.board.every((row) =>
+                row.every((cell) => (cell.mine ? true : cell.revealed))
+            );
+            if (allSafeRevealed && !state.gameOver) {
+                endGame(true);
+            }
+        }
+
+        function handleCellClick(e) {
+            const target = e.target.closest(".ms-cell");
+            if (!target) return;
+            const r = Number(target.dataset.row);
+            const c = Number(target.dataset.col);
+            if (!state.running && !state.gameOver) startTimer();
+            revealCell(r, c);
+        }
+
+        function handleCellContext(e) {
+            const target = e.target.closest(".ms-cell");
+            if (!target) return;
+            e.preventDefault();
+            const r = Number(target.dataset.row);
+            const c = Number(target.dataset.col);
+            toggleFlag(r, c);
+        }
+
+        function newGame() {
+            stopTimer();
+            state.timer = 0;
+            state.minesLeft = minesCount;
+            state.gameOver = false;
+            state.running = false;
+            resetBtn.textContent = ":)";
+            buildBoard();
+            renderGrid();
+            updateCounters();
+        }
+
+        gridEl.addEventListener("click", handleCellClick);
+        gridEl.addEventListener("contextmenu", handleCellContext);
+
+        // Long press flag on touch
+        gridEl.addEventListener(
+            "touchstart",
+            (e) => {
+                const target = e.target.closest(".ms-cell");
+                if (!target) return;
+                const r = Number(target.dataset.row);
+                const c = Number(target.dataset.col);
+                const touchTimer = setTimeout(() => toggleFlag(r, c), 500);
+                target.addEventListener(
+                    "touchend",
+                    () => {
+                        clearTimeout(touchTimer);
+                    }, { once: true }
+                );
+            },
+            { passive: true }
+        );
+
+        resetBtn.addEventListener("click", newGame);
+        newBtn.addEventListener("click", newGame);
+
+        newGame();
     }
 
     /* --------------------------------------------------
