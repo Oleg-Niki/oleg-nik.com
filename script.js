@@ -1228,6 +1228,8 @@
                 const game = btn.dataset.openGame;
                 if (game === "tictactoe") {
                     openTicTacToeWindow();
+                } else if (game === "durak") {
+                    openDurakWindow();
                 }
             });
         });
@@ -1959,6 +1961,298 @@
         });
 
         render();
+    }
+
+    /* --------------------------------------------------
+     * Durak (Дурак) - Simplified single-attack flow
+     * -------------------------------------------------- */
+
+    function openDurakWindow() {
+        const windowId = "window-durak";
+        let windowEl = document.getElementById(windowId);
+
+        if (!windowEl) {
+            windowEl = document.createElement("section");
+            windowEl.id = windowId;
+            windowEl.className = "window window--primary hidden";
+            windowEl.setAttribute("role", "dialog");
+            windowEl.setAttribute("aria-modal", "false");
+            windowEl.setAttribute("aria-labelledby", `${windowId}-title`);
+            windowEl.innerHTML = buildDurakWindow(windowId);
+            document.body.appendChild(windowEl);
+            wireWindowControls(windowEl);
+            initDurak(windowEl);
+        }
+
+        showWindow(windowEl);
+        centerWindow(windowEl, true);
+    }
+
+    function buildDurakWindow(windowId) {
+        return `
+      <header class="window-titlebar drag-handle">
+        <div class="window-titlebar-left">
+          <img src="card_game-icon.png" alt="" class="window-title-icon" aria-hidden="true">
+          <span id="${windowId}-title" class="window-title">Дурак (vs AI)</span>
+        </div>
+        <div class="window-titlebar-controls">
+          <button type="button" class="window-control window-control--minimize" data-action="minimize" data-target="${windowId}" aria-label="Minimize">
+            _
+          </button>
+          <button type="button" class="window-control window-control--maximize" data-action="maximize" data-target="${windowId}" aria-label="Maximize">
+            ${MAXIMIZE_LABEL}
+          </button>
+          <button type="button" class="window-control window-control--close" data-action="close" data-target="${windowId}" aria-label="Close">
+            X
+          </button>
+        </div>
+      </header>
+      <div class="window-body">
+        <div class="durak-wrap">
+          <div class="durak-top">
+            <div class="durak-status">Loading...</div>
+            <div class="durak-info">
+              <span class="durak-trump"></span>
+              <span class="durak-deck">Deck: 0</span>
+              <span class="durak-ai-count">AI Cards: 0</span>
+            </div>
+          </div>
+          <div class="durak-table"></div>
+          <div class="durak-actions">
+            <button type="button" class="durak-button durak-take">Take Cards</button>
+            <button type="button" class="durak-button durak-new">New Game</button>
+          </div>
+          <div class="durak-hand"></div>
+        </div>
+      </div>
+    `;
+    }
+
+    function initDurak(windowEl) {
+        if (!windowEl || windowEl.dataset.durakBound === "true") return;
+        windowEl.dataset.durakBound = "true";
+
+        const statusEl = windowEl.querySelector(".durak-status");
+        const trumpEl = windowEl.querySelector(".durak-trump");
+        const deckEl = windowEl.querySelector(".durak-deck");
+        const aiCountEl = windowEl.querySelector(".durak-ai-count");
+        const tableEl = windowEl.querySelector(".durak-table");
+        const handEl = windowEl.querySelector(".durak-hand");
+        const takeBtn = windowEl.querySelector(".durak-take");
+        const newBtn = windowEl.querySelector(".durak-new");
+
+        const suits = ["♠", "♥", "♦", "♣"];
+        const ranks = ["6", "7", "8", "9", "10", "J", "Q", "K", "A"];
+
+        const state = {
+            deck: [],
+            trump: null,
+            playerHand: [],
+            aiHand: [],
+            table: [], // {attack, defense}
+            attacker: "ai",
+            defender: "player",
+            phase: "attack", // attack or defend
+            gameOver: false,
+        };
+
+        function newGame() {
+            state.gameOver = false;
+            state.table = [];
+            state.attacker = "ai";
+            state.defender = "player";
+            state.phase = "attack";
+            const deck = [];
+            for (const suit of suits) {
+                for (const rank of ranks) {
+                    deck.push({ suit, rank });
+                }
+            }
+            shuffle(deck);
+            state.deck = deck;
+            state.trump = deck[deck.length - 1].suit;
+            dealHands();
+            render();
+            maybeAiTurn();
+        }
+
+        function shuffle(arr) {
+            for (let i = arr.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [arr[i], arr[j]] = [arr[j], arr[i]];
+            }
+        }
+
+        function dealHands() {
+            while (state.playerHand.length < 6 && state.deck.length) {
+                state.playerHand.push(state.deck.pop());
+            }
+            while (state.aiHand.length < 6 && state.deck.length) {
+                state.aiHand.push(state.deck.pop());
+            }
+        }
+
+        function cardValue(card) {
+            return ranks.indexOf(card.rank);
+        }
+
+        function cardBeats(a, b) {
+            if (a.suit === b.suit && cardValue(a) > cardValue(b)) return true;
+            if (a.suit === state.trump && b.suit !== state.trump) return true;
+            return false;
+        }
+
+        function render() {
+            trumpEl.textContent = `Trump: ${state.trump || "-"}`;
+            deckEl.textContent = `Deck: ${state.deck.length}`;
+            aiCountEl.textContent = `AI Cards: ${state.aiHand.length}`;
+
+            handEl.innerHTML = state.playerHand
+                .map((c, idx) => `<button class="card ${c.suit === state.trump ? "trump" : ""}" data-idx="${idx}">${c.rank}${c.suit}</button>`)
+                .join("");
+
+            tableEl.innerHTML = state.table
+                .map(
+                    (pair) => `
+            <div class="durak-pair">
+              <div class="card ${pair.attack.suit === state.trump ? "trump" : ""}">${pair.attack.rank}${pair.attack.suit}</div>
+              ${
+                  pair.defense
+                      ? `<div class="card ${pair.defense.suit === state.trump ? "trump" : ""}">${pair.defense.rank}${pair.defense.suit}</div>`
+                      : `<div class="card back"></div>`
+              }
+            </div>`
+                )
+                .join("");
+
+            const winner = checkGameEnd();
+            if (winner) {
+                statusEl.textContent = winner === "player" ? "You win!" : "Computer wins.";
+                state.gameOver = true;
+            } else {
+                statusEl.textContent = `${state.attacker === "player" ? "You attack" : "AI attacks"} — Trump: ${state.trump}`;
+            }
+
+            const handButtons = handEl.querySelectorAll(".card");
+            handButtons.forEach((btn) => {
+                btn.addEventListener("click", () => {
+                    handlePlayerCard(Number(btn.dataset.idx));
+                });
+            });
+        }
+
+        function checkGameEnd() {
+            if (state.playerHand.length === 0 && state.deck.length === 0) return "player";
+            if (state.aiHand.length === 0 && state.deck.length === 0) return "ai";
+            return null;
+        }
+
+        function handlePlayerCard(idx) {
+            if (state.gameOver) return;
+            const card = state.playerHand[idx];
+            if (!card) return;
+            if (state.attacker === "player" && state.table.length === 0) {
+                state.table.push({ attack: card, defense: null });
+                state.playerHand.splice(idx, 1);
+                aiDefend();
+            } else if (state.defender === "player") {
+                const pair = state.table[state.table.length - 1];
+                if (!pair || pair.defense) return;
+                if (cardBeats(card, pair.attack)) {
+                    pair.defense = card;
+                    state.playerHand.splice(idx, 1);
+                    endBattle(true);
+                }
+            }
+            render();
+        }
+
+        function aiDefend() {
+            const pair = state.table[state.table.length - 1];
+            if (!pair) return;
+            const options = state.aiHand
+                .map((c, i) => ({ card: c, idx: i }))
+                .filter(({ card }) => cardBeats(card, pair.attack))
+                .sort((a, b) => cardValue(a.card) - cardValue(b.card));
+            if (options.length) {
+                const choice = options[0];
+                pair.defense = choice.card;
+                state.aiHand.splice(choice.idx, 1);
+                endBattle(true);
+            } else {
+                // AI takes cards
+                state.aiHand.push(pair.attack);
+                state.table.pop();
+                endBattle(false, true);
+            }
+        }
+
+        function aiAttack() {
+            const choice = state.aiHand
+                .map((c, i) => ({ card: c, idx: i }))
+                .sort((a, b) => cardValue(a.card) - cardValue(b.card))[0];
+            if (!choice) return;
+            state.aiHand.splice(choice.idx, 1);
+            state.table.push({ attack: choice.card, defense: null });
+            render();
+        }
+
+        function endBattle(defended, defenderTook = false) {
+            if (!defenderTook && defended) {
+                // swap roles
+                [state.attacker, state.defender] = [state.defender, state.attacker];
+            }
+
+            if (!defenderTook && defended) {
+                // discard table
+                state.table = [];
+            }
+
+            if (defenderTook) {
+                // defender keeps cards already taken care of
+                state.table = [];
+            }
+
+            drawUp();
+            render();
+            if (!state.gameOver) maybeAiTurn();
+        }
+
+        function drawUp() {
+            const order = state.attacker === "player" ? ["playerHand", "aiHand"] : ["aiHand", "playerHand"];
+            order.forEach((handKey) => {
+                const hand = state[handKey];
+                while (hand.length < 6 && state.deck.length) {
+                    hand.push(state.deck.pop());
+                }
+            });
+        }
+
+        function maybeAiTurn() {
+            if (state.gameOver) return;
+            if (state.attacker === "ai") {
+                aiAttack();
+            }
+        }
+
+        takeBtn.addEventListener("click", () => {
+            if (state.gameOver) return;
+            if (state.defender !== "player") return;
+            // player takes all table cards
+            state.table.forEach((pair) => {
+                if (pair.attack) state.playerHand.push(pair.attack);
+                if (pair.defense) state.playerHand.push(pair.defense);
+            });
+            state.table = [];
+            // attacker stays same (AI)
+            drawUp();
+            render();
+            if (!state.gameOver) maybeAiTurn();
+        });
+
+        newBtn.addEventListener("click", () => newGame());
+
+        newGame();
     }
 
     /* --------------------------------------------------

@@ -1089,6 +1089,104 @@ body {
     border-right: 2px solid var(--win98-border-light);
 }
 
+/* Durak (Дурак) */
+.durak-wrap {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    font-size: 12px;
+}
+
+.durak-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+}
+
+.durak-info {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.durak-status {
+    font-weight: bold;
+}
+
+.durak-table {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 6px;
+    min-height: 110px;
+    padding: 6px;
+    border: 1px solid var(--win98-border-medium);
+    background: #f8f8f8;
+}
+
+.durak-pair {
+    display: flex;
+    gap: 4px;
+    align-items: center;
+}
+
+.durak-hand {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.card {
+    width: 56px;
+    height: 80px;
+    background: #ffffff;
+    border: 1px solid var(--win98-border-medium);
+    box-shadow: inset 1px 1px 0 var(--win98-border-light), inset -1px -1px 0 var(--win98-border-dark);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    cursor: pointer;
+}
+
+.card.trump {
+    border-color: #000080;
+}
+
+.card.disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.card.back {
+    background: repeating-linear-gradient(45deg, #d0d0d0, #d0d0d0 6px, #b0b0b0 6px, #b0b0b0 12px);
+}
+
+.durak-actions {
+    display: flex;
+    gap: 8px;
+}
+
+.durak-button {
+    padding: 4px 10px;
+    font-family: var(--win98-font);
+    font-size: 12px;
+    background: #c0c0c0;
+    border-top: 2px solid var(--win98-border-light);
+    border-left: 2px solid var(--win98-border-light);
+    border-bottom: 2px solid var(--win98-border-dark);
+    border-right: 2px solid var(--win98-border-dark);
+    cursor: pointer;
+}
+
+.durak-button:active {
+    border-top: 2px solid var(--win98-border-dark);
+    border-left: 2px solid var(--win98-border-dark);
+    border-bottom: 2px solid var(--win98-border-light);
+    border-right: 2px solid var(--win98-border-light);
+}
+
 .spec-table {
     display: grid;
     grid-template-columns: 1fr;
