@@ -78,6 +78,16 @@
                 "Random builds",
             ],
         },
+        {
+            id: "diy-stress",
+            title: "Engr Stress vs Engr Strain",
+            icon: "defragment-icon.png",
+            contents: [
+                "CSV upload",
+                "0.2% offset yield",
+                "Stress/strain plots",
+            ],
+        },
     ];
 
     const SEARCH_ENTRIES = [{
@@ -127,6 +137,12 @@
             type: "project",
             key: "diy",
             meta: "Builds and experiments",
+        },
+        {
+            label: "Engr Stress vs Engr Strain",
+            type: "project",
+            key: "diy-stress",
+            meta: "DIY tensile CSV plotter",
         },
         {
             label: "Contact",
@@ -812,6 +828,10 @@
             }
         }
 
+        if (folder.id === "diy-stress") {
+            wireDiyStressTool(windowEl);
+        }
+
         showWindow(windowEl);
         centerWindow(windowEl, false);
     }
@@ -856,6 +876,9 @@
         }
         if (folder.id === "susty") {
             return renderSustyProject();
+        }
+        if (folder.id === "diy-stress") {
+            return renderDiyStressProject();
         }
         const fileList = folder.contents.map((item) => `<li>${item}</li>`).join("");
         return `
@@ -956,6 +979,494 @@
         </div>
       </div>
     `;
+    }
+
+    function renderDiyStressProject() {
+        return `
+      <div class="folder-body folder-body--project" data-stress-tool="root">
+        <div class="folder-body-header">
+          <div class="folder-body-path">C:\\Projects\\DIY\\EngrStressStrain</div>
+          <div class="folder-body-meta">Upload tensile CSV -> plots</div>
+        </div>
+
+        <div class="project-hero">
+          <div>
+            <h2 class="project-title">Engineering Stress vs Engineering Strain</h2>
+            <p class="project-subtitle">Upload tensile-test CSV to compute modulus, 0.2% offset yield, UTS, and elongation.</p>
+          </div>
+          <div class="project-actions">
+            <label class="ms-button">
+              <input type="file" data-stress="file" accept=".csv,text/csv" hidden>
+              Upload CSV
+            </label>
+            <button class="ms-button" type="button" data-stress-action="reset">Reset</button>
+            <button class="ms-button" type="button" data-stress-action="demo">Load Demo</button>
+          </div>
+          <div class="stat-cards">
+            <div class="stat-card">
+              <span class="stat-label">E (GPa)</span>
+              <span class="stat-value" data-stress="E">--</span>
+            </div>
+            <div class="stat-card">
+              <span class="stat-label">Yield (MPa)</span>
+              <span class="stat-value" data-stress="yield">--</span>
+            </div>
+            <div class="stat-card">
+              <span class="stat-label">Yield Strain</span>
+              <span class="stat-value" data-stress="yield-strain">--</span>
+            </div>
+            <div class="stat-card">
+              <span class="stat-label">UTS (MPa)</span>
+              <span class="stat-value" data-stress="uts">--</span>
+            </div>
+            <div class="stat-card">
+              <span class="stat-label">% Elongation</span>
+              <span class="stat-value" data-stress="elongation">--</span>
+            </div>
+            <div class="stat-card">
+              <span class="stat-label">K / n</span>
+              <span class="stat-value" data-stress="hardening">--</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="project-section-grid">
+          <section class="project-section">
+            <h3>Engineering Stress-Strain</h3>
+            <canvas data-stress="chart-main" width="720" height="420"></canvas>
+          </section>
+          <section class="project-section">
+            <h3>Low Strain (<= 5%)</h3>
+            <canvas data-stress="chart-zoom" width="720" height="420"></canvas>
+          </section>
+        </div>
+
+        <div class="project-section">
+          <h3>Status</h3>
+          <p class="folder-body-text" data-stress="status">Load a CSV to begin. Column names must contain "Extension" and "Load".</p>
+        </div>
+      </div>
+    `;
+    }
+
+    function wireDiyStressTool(windowEl) {
+        const root = windowEl.querySelector("[data-stress-tool='root']");
+        if (!root || root.dataset.bound === "true") return;
+        root.dataset.bound = "true";
+
+        const fileInput = root.querySelector("[data-stress='file']");
+        const resetBtn = root.querySelector("[data-stress-action='reset']");
+        const demoBtn = root.querySelector("[data-stress-action='demo']");
+        const statusEl = root.querySelector("[data-stress='status']");
+        const chartMain = root.querySelector("[data-stress='chart-main']");
+        const chartZoom = root.querySelector("[data-stress='chart-zoom']");
+        const stats = {
+            E: root.querySelector("[data-stress='E']"),
+            yield: root.querySelector("[data-stress='yield']"),
+            yieldStrain: root.querySelector("[data-stress='yield-strain']"),
+            uts: root.querySelector("[data-stress='uts']"),
+            elongation: root.querySelector("[data-stress='elongation']"),
+            hardening: root.querySelector("[data-stress='hardening']"),
+        };
+
+        const setStatus = (msg) => {
+            if (statusEl) statusEl.textContent = msg;
+        };
+
+        const clearCharts = () => {
+            [chartMain, chartZoom].forEach((canvas) => {
+                if (!canvas) return;
+                const ctx = canvas.getContext("2d");
+                if (ctx) ctx.clearRect(0, 0, canvas.width, canvas.height);
+            });
+        };
+
+        const setStats = (result) => {
+            const set = (el, val) => {
+                if (el) el.textContent = val;
+            };
+            if (!result) {
+                Object.values(stats).forEach((el) => set(el, "--"));
+                return;
+            }
+            set(stats.E, formatNumber(result.modulusGPa, 3));
+            set(stats.yield, formatNumber(result.yieldStressMPa, 2));
+            set(stats.yieldStrain, formatNumber(result.yieldStrain, 4));
+            set(stats.uts, formatNumber(result.utsMPa, 2));
+            set(stats.elongation, formatNumber(result.percentElongation, 1));
+            if (result.hardening) {
+                set(stats.hardening, `K=${formatNumber(result.hardening.K_MPa, 1)} MPa, n=${formatNumber(result.hardening.n, 3)}`);
+            } else {
+                set(stats.hardening, "--");
+            }
+        };
+
+        const drawCharts = (result) => {
+            if (!result) return;
+            renderStressStrainChart(chartMain, [
+                { points: result.engPointsMPa, color: "#0b6" },
+                { points: result.offsetLineMPa, color: "#c60", dash: [6, 6] },
+            ], result.yieldPointMPa);
+
+            const zoomMain = result.engPointsMPa.filter((p) => p.x <= 0.05);
+            const zoomOffset = result.offsetLineMPa.filter((p) => p.x <= 0.05);
+            const zoomMarker = result.yieldPointMPa && result.yieldPointMPa.x <= 0.05 ? result.yieldPointMPa : null;
+            renderStressStrainChart(chartZoom, [
+                { points: zoomMain, color: "#0b6" },
+                { points: zoomOffset, color: "#c60", dash: [6, 6] },
+            ], zoomMarker, { xMax: 0.05 });
+        };
+
+        const reset = () => {
+            clearCharts();
+            setStats(null);
+            setStatus('Load a CSV to begin. Column names must contain "Extension" and "Load".');
+            if (fileInput) fileInput.value = "";
+        };
+
+        const handleResult = (result) => {
+            setStats(result);
+            drawCharts(result);
+            setStatus(`Loaded ${result.points.length} rows. Modulus ${formatNumber(result.modulusGPa, 3)} GPa; yield at ${formatNumber(result.yieldStressMPa, 2)} MPa.`);
+        };
+
+        const readFile = (file) => {
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = () => {
+                try {
+                    const rows = parseCsvText(reader.result || "");
+                    const result = runStressStrainAnalysis(rows);
+                    handleResult(result);
+                } catch (err) {
+                    clearCharts();
+                    setStats(null);
+                    setStatus(err && err.message ? err.message : "Could not read CSV.");
+                }
+            };
+            reader.readAsText(file);
+        };
+
+        if (fileInput) {
+            fileInput.addEventListener("change", () => {
+                const file = fileInput.files && fileInput.files[0];
+                readFile(file);
+            });
+        }
+
+        if (resetBtn) {
+            resetBtn.addEventListener("click", reset);
+        }
+
+        if (demoBtn) {
+            demoBtn.addEventListener("click", () => {
+                setStatus("Loading demo CSV...");
+                fetch("assets/projects/EngrStress/Specimen_RawData_1_2.csv")
+                    .then((res) => {
+                        if (!res.ok) throw new Error(`Demo load failed (${res.status})`);
+                        return res.text();
+                    })
+                    .then((text) => {
+                        const rows = parseCsvText(text);
+                        const result = runStressStrainAnalysis(rows);
+                        handleResult(result);
+                    })
+                    .catch((err) => {
+                        setStatus(err && err.message ? err.message : "Could not load demo CSV.");
+                        clearCharts();
+                        setStats(null);
+                    });
+            });
+        }
+
+        reset();
+    }
+
+    function parseCsvText(text) {
+        if (!text) {
+            throw new Error("CSV is empty.");
+        }
+        const lines = String(text)
+            .split(/\r?\n/)
+            .map((line) => line.trim())
+            .filter((line) => line.length);
+        if (!lines.length) {
+            throw new Error("CSV has no rows.");
+        }
+        const rows = lines.map(splitCsvLine);
+        return rows;
+    }
+
+    function splitCsvLine(line) {
+        const cells = [];
+        let current = "";
+        let inQuotes = false;
+        for (let i = 0; i < line.length; i++) {
+            const ch = line[i];
+            if (ch === '"' && line[i + 1] === '"') {
+                current += '"';
+                i++;
+                continue;
+            }
+            if (ch === '"') {
+                inQuotes = !inQuotes;
+                continue;
+            }
+            if (ch === "," && !inQuotes) {
+                cells.push(current.trim());
+                current = "";
+                continue;
+            }
+            current += ch;
+        }
+        cells.push(current.trim());
+        return cells;
+    }
+
+    function runStressStrainAnalysis(rows) {
+        if (!rows || !rows.length) {
+            throw new Error("CSV is empty.");
+        }
+        const headers = rows[0].map((h) => (h || "").trim());
+        if (!headers.length) {
+            throw new Error("CSV header is missing.");
+        }
+        const findIndex = (keyword) =>
+            headers.findIndex((h) => h.toLowerCase().includes(keyword));
+
+        const dispIdx = findIndex("extension");
+        const loadIdx = findIndex("load");
+        if (dispIdx === -1) {
+            throw new Error('Column containing "Extension" was not found.');
+        }
+        if (loadIdx === -1) {
+            throw new Error('Column containing "Load" was not found.');
+        }
+
+        const thickness = 3 / 1000; // m
+        const width = 13 / 1000; // m
+        const gaugeLength = 80 / 1000; // m
+        const A0 = thickness * width;
+        const points = [];
+
+        for (let i = 1; i < rows.length; i++) {
+            const row = rows[i];
+            if (!row) continue;
+            const dispRaw = parseFloat(String(row[dispIdx] || "").replace(/,/g, ""));
+            const loadRaw = parseFloat(String(row[loadIdx] || "").replace(/,/g, ""));
+            if (!Number.isFinite(dispRaw) || !Number.isFinite(loadRaw)) {
+                continue;
+            }
+            const dispM = dispRaw / 1000;
+            const strain = dispM / gaugeLength;
+            const stress = loadRaw / A0;
+            points.push({ strain, stress, dispM });
+        }
+
+        if (points.length < 3) {
+            throw new Error("Not enough numeric rows to plot.");
+        }
+
+        const elasticLimit = 0.02;
+        const offset = 0.002;
+        const elasticPts = points.filter((p) => p.strain < elasticLimit);
+        const fitElastic = linearFit(elasticPts, (p) => p.strain, (p) => p.stress);
+        if (!fitElastic) {
+            throw new Error("Could not fit elastic region (need >1 point under 0.02 strain).");
+        }
+        const E = fitElastic.slope;
+        const modulusGPa = E / 1e9;
+        const modulusMPa = E / 1e6;
+
+        const offsetLine = points.map((p) => ({
+            strain: p.strain,
+            stress: E * (p.strain - offset),
+        }));
+
+        let yieldIdx = 0;
+        let minDiff = Infinity;
+        points.forEach((p, idx) => {
+            const diff = Math.abs(p.stress - offsetLine[idx].stress);
+            if (diff < minDiff) {
+                minDiff = diff;
+                yieldIdx = idx;
+            }
+        });
+        const yieldPoint = points[yieldIdx];
+        const yieldStrain = yieldPoint ? yieldPoint.strain : null;
+        const yieldStress = yieldPoint ? yieldPoint.stress : null;
+
+        const uts = Math.max(...points.map((p) => p.stress));
+        const percentElongation = (points[points.length - 1].dispM / gaugeLength) * 100;
+
+        const truePoints = points.map((p) => ({
+            strain: Math.log(1 + p.strain),
+            stress: p.stress * (1 + p.strain),
+        }));
+
+        let hardening = null;
+        if (yieldStrain !== null && Number.isFinite(yieldStrain)) {
+            const minTrueStrain = Math.log(1 + yieldStrain);
+            const plastic = truePoints.filter(
+                (p) => p.strain > minTrueStrain && p.strain > 0 && p.stress > 0
+            );
+            const fitHard = linearFit(
+                plastic,
+                (p) => Math.log(p.strain),
+                (p) => Math.log(p.stress)
+            );
+            if (fitHard) {
+                const n = fitHard.slope;
+                const K = Math.exp(fitHard.intercept);
+                hardening = { K, n, K_MPa: K / 1e6 };
+            }
+        }
+
+        return {
+            points,
+            engPointsMPa: points.map((p) => ({ x: p.strain, y: p.stress / 1e6 })),
+            offsetLineMPa: offsetLine.map((p) => ({ x: p.strain, y: p.stress / 1e6 })),
+            truePointsMPa: truePoints.map((p) => ({ x: p.strain, y: p.stress / 1e6 })),
+            modulusPa: E,
+            modulusGPa,
+            modulusMPa,
+            yieldStrain,
+            yieldStress,
+            yieldStressMPa: yieldStress !== null ? yieldStress / 1e6 : null,
+            yieldPointMPa: yieldPoint
+                ? { x: yieldPoint.strain, y: yieldPoint.stress / 1e6 }
+                : null,
+            uts,
+            utsMPa: uts / 1e6,
+            percentElongation,
+            offset,
+            hardening,
+        };
+    }
+
+    function linearFit(points, getX, getY) {
+        if (!points || points.length < 2) return null;
+        let sumX = 0;
+        let sumY = 0;
+        let sumXY = 0;
+        let sumX2 = 0;
+        let count = 0;
+        points.forEach((p) => {
+            const x = getX(p);
+            const y = getY(p);
+            if (!Number.isFinite(x) || !Number.isFinite(y)) return;
+            sumX += x;
+            sumY += y;
+            sumXY += x * y;
+            sumX2 += x * x;
+            count += 1;
+        });
+        if (count < 2) return null;
+        const denom = count * sumX2 - sumX * sumX;
+        if (denom === 0) return null;
+        const slope = (count * sumXY - sumX * sumY) / denom;
+        const intercept = (sumY - slope * sumX) / count;
+        return { slope, intercept };
+    }
+
+    function renderStressStrainChart(canvas, series, marker, options = {}) {
+        if (!canvas) return;
+        const ctx = canvas.getContext("2d");
+        if (!ctx) return;
+        const allPoints = series.flatMap((s) => s.points || []);
+        if (!allPoints.length) {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            return;
+        }
+        const pad = 48;
+        const w = canvas.width;
+        const h = canvas.height;
+        const xs = allPoints.map((p) => p.x);
+        const ys = allPoints.map((p) => p.y);
+        let xMin = 0;
+        let xMax = Math.max(...xs);
+        let yMin = 0;
+        let yMax = Math.max(...ys);
+        if (options.xMax) xMax = options.xMax;
+        if (!Number.isFinite(xMax) || xMax <= xMin) xMax = xMin + 1;
+        if (!Number.isFinite(yMax) || yMax <= yMin) yMax = yMin + 1;
+        const xScale = (x) => pad + ((x - xMin) / (xMax - xMin)) * (w - pad * 2);
+        const yScale = (y) => h - pad - ((y - yMin) / (yMax - yMin)) * (h - pad * 2);
+
+        ctx.clearRect(0, 0, w, h);
+        ctx.strokeStyle = "#777";
+        ctx.lineWidth = 1;
+        ctx.strokeRect(pad, pad, w - pad * 2, h - pad * 2);
+
+        const drawTicks = () => {
+            const ticks = 5;
+            ctx.fillStyle = "#555";
+            ctx.font = "12px sans-serif";
+            ctx.textAlign = "center";
+            ctx.textBaseline = "top";
+            for (let i = 0; i <= ticks; i++) {
+                const t = xMin + ((xMax - xMin) * i) / ticks;
+                const x = xScale(t);
+                ctx.beginPath();
+                ctx.moveTo(x, h - pad);
+                ctx.lineTo(x, h - pad + 6);
+                ctx.stroke();
+                ctx.fillText(formatNumber(t, 3), x, h - pad + 8);
+            }
+            ctx.textAlign = "right";
+            ctx.textBaseline = "middle";
+            for (let i = 0; i <= ticks; i++) {
+                const t = yMin + ((yMax - yMin) * i) / ticks;
+                const y = yScale(t);
+                ctx.beginPath();
+                ctx.moveTo(pad - 6, y);
+                ctx.lineTo(pad, y);
+                ctx.stroke();
+                ctx.fillText(formatNumber(t, 1), pad - 8, y);
+            }
+            ctx.save();
+            ctx.textAlign = "center";
+            ctx.textBaseline = "top";
+            ctx.fillText("Strain", w / 2, h - 24);
+            ctx.translate(12, h / 2);
+            ctx.rotate(-Math.PI / 2);
+            ctx.textAlign = "center";
+            ctx.textBaseline = "bottom";
+            ctx.fillText("Stress (MPa)", 0, 0);
+            ctx.restore();
+        };
+
+        drawTicks();
+
+        series.forEach((s) => {
+            if (!s.points || !s.points.length) return;
+            ctx.beginPath();
+            ctx.strokeStyle = s.color || "#0a4";
+            ctx.lineWidth = s.width || 2;
+            if (s.dash) ctx.setLineDash(s.dash);
+            s.points.forEach((p, idx) => {
+                const x = xScale(p.x);
+                const y = yScale(p.y);
+                if (idx === 0) ctx.moveTo(x, y);
+                else ctx.lineTo(x, y);
+            });
+            ctx.stroke();
+            if (s.dash) ctx.setLineDash([]);
+        });
+
+        if (marker && Number.isFinite(marker.x) && Number.isFinite(marker.y)) {
+            const x = xScale(marker.x);
+            const y = yScale(marker.y);
+            ctx.fillStyle = "#c00";
+            ctx.beginPath();
+            ctx.arc(x, y, 5, 0, Math.PI * 2);
+            ctx.fill();
+        }
+    }
+
+    function formatNumber(val, digits) {
+        if (!Number.isFinite(val)) return "--";
+        return Number(val).toFixed(digits);
     }
 
     function renderEngr210Project() {
